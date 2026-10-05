@@ -10,7 +10,8 @@
 </style>
 </head>
 <body>
-<section class="auth" id="authPanel"><div class="eyebrow">Presupuesto del hogar</div><h1>Gastos compartidos</h1><p>Iniciá sesión para ver y cargar los mismos gastos desde ambos iPhone. Para compartir una única lista, usen la misma cuenta de la app en los dos teléfonos.</p><form id="authForm" novalidate><div class="field"><label for="email">Correo electrónico</label><input id="email" type="email" autocomplete="email" required></div><div class="field"><label for="password">Contraseña de la app</label><input id="password" type="password" autocomplete="current-password" minlength="8" required></div><div class="authBtns"><button class="btn" type="submit">Iniciar sesión</button><button class="btn secondary" id="signup" type="button">Crear cuenta</button></div></form><div id="authStatus" class="status" role="status"></div></section>
+<section class="auth" id="authPanel"><div class="eyebrow">Presupuesto del hogar</div><h1>Gastos compartidos</h1><p>Iniciá sesión para ver y cargar los mismos gastos desde ambos iPhone. Para compartir una única lista, usen la misma cuenta de la app en los dos teléfonos.</p><form id="authForm" novalidate><div class="field"><label for="email">Correo electrónico</label><input id="email" type="email" autocomplete="email" required></div><div class="field"><label for="password">Contraseña de la app</label><input id="password" type="password" autocomplete="current-password" minlength="8" required></div><div class="authBtns"><button class="btn" type="submit">Iniciar sesión</button><button class="btn secondary" id="signup" type="button">Crear cuenta</button></div></form><button id="forgotPassword" class="smallbtn" type="button" style="margin-top:12px;width:100%">¿Olvidaste tu contraseña?</button><div id="authStatus" class="status" role="status"></div></section>
+<section class="auth hide" id="resetPanel"><div class="eyebrow">Recuperar acceso</div><h1>Nueva contraseña</h1><p>Ingresá una nueva contraseña de al menos 8 caracteres.</p><form id="resetForm"><div class="field"><label for="newPassword">Nueva contraseña</label><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></div><div class="field"><label for="newPassword2">Repetir contraseña</label><input id="newPassword2" type="password" minlength="8" autocomplete="new-password" required></div><button class="btn" type="submit" style="width:100%">Guardar nueva contraseña</button></form><div id="resetStatus" class="status" role="status"></div></section>
 <main class="wrap hide" id="app">
 <header class="top"><div><div class="eyebrow">Presupuesto del hogar</div><h1>Gastos de octubre</h1><p>Lista compartida · se actualiza en línea</p></div><div class="userbar"><button id="signout" class="smallbtn" type="button">Cerrar sesión</button><div class="badge">Octubre 2026</div></div></header>
 <section class="cards"><article class="card"><div class="label">Gastos del mes</div><div class="value" id="variableTotal">$ 0</div></article><article class="card"><div class="label">Total del mes</div><div class="value" id="monthTotal">$ 0</div></article></section>
@@ -34,11 +35,40 @@ function render(){const variable=expenses.filter(x=>!x.is_fixed),variableSum=var
 async function enterApp(session){currentSession=session;authPanel.classList.add('hide');app.classList.remove('hide');await loadIncomes();await loadExpenses();if(liveChannel)await client.removeChannel(liveChannel);liveChannel=client.channel('shared-expenses').on('postgres_changes',{event:'*',schema:'public',table:'expenses'},()=>loadExpenses()).subscribe()}
 async function leaveApp(){currentSession=null;expenses=[];if(liveChannel){await client.removeChannel(liveChannel);liveChannel=null}app.classList.add('hide');authPanel.classList.remove('hide')}
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();showMessage('authStatus','Ingresando…');const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;const {data,error}=await client.auth.signInWithPassword({email,password});if(error){showMessage('authStatus','No pudimos iniciar sesión. Revisá el correo y la contraseña.',true);return}showMessage('authStatus','');if(data.session)await enterApp(data.session)});
+document.getElementById('forgotPassword').addEventListener('click',async()=>{
+  const email=document.getElementById('email').value.trim();
+  if(!email){showMessage('authStatus','Primero ingresá tu correo electrónico.',true);return}
+  showMessage('authStatus','Enviando correo para recuperar la contraseña…');
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error){showMessage('authStatus','No se pudo enviar el correo de recuperación. Revisá el correo e intentá nuevamente.',true);return}
+  showMessage('authStatus','Te enviamos un correo. Abrí el enlace para crear una contraseña nueva.');
+});
+document.getElementById('resetForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const p1=document.getElementById('newPassword').value,p2=document.getElementById('newPassword2').value;
+  if(p1.length<8){showMessage('resetStatus','La contraseña debe tener al menos 8 caracteres.',true);return}
+  if(p1!==p2){showMessage('resetStatus','Las contraseñas no coinciden.',true);return}
+  const {error}=await client.auth.updateUser({password:p1});
+  if(error){showMessage('resetStatus','No se pudo cambiar la contraseña. Volvé a solicitar el correo de recuperación.',true);return}
+  showMessage('resetStatus','Contraseña actualizada. Ya podés ingresar a la aplicación.');
+  document.getElementById('resetPanel').classList.add('hide');
+  authPanel.classList.remove('hide');
+});
 document.getElementById('signup').addEventListener('click',async()=>{const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||password.length<8){showMessage('authStatus','Ingresá un correo y una contraseña de al menos 8 caracteres.',true);return}showMessage('authStatus','Creando cuenta…');const emailRedirectTo=window.location.origin+window.location.pathname;const {data,error}=await client.auth.signUp({email,password},{emailRedirectTo});if(error){showMessage('authStatus','No se pudo crear la cuenta. Probá iniciar sesión o revisá la configuración del correo.',true);return}if(data.session){showMessage('authStatus','Cuenta creada.');await enterApp(data.session)}else showMessage('authStatus','Cuenta creada. Revisá tu correo para confirmarla y después iniciá sesión.')});
 document.getElementById('signout').addEventListener('click',async()=>{await client.auth.signOut();await leaveApp()});
 document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('income_settings').upsert({id:1,your_income:your,her_income:her},{onConflict:'id'});if(error){showMessage('incomeStatus','No se pudieron guardar los ingresos. Revisá los permisos de income_settings en Supabase.',true);return}incomes={you:your,her:her};render();showMessage('incomeStatus','Ingresos guardados correctamente.');});['yourIncome','herIncome','amount'].forEach(id=>document.getElementById(id).addEventListener('blur',e=>formatMoneyInput(e.target)));document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {error}=await client.from('expenses').insert(row);if(error){showMessage('appStatus','No se pudo guardar el gasto. Revisá tu conexión e iniciá sesión nuevamente.',true);return}document.getElementById('amount').value='';document.getElementById('detail').value='';showMessage('appStatus','Gasto agregado.');await loadExpenses()});
 document.getElementById('expenseRows').addEventListener('click',async e=>{const id=e.target.dataset.id;if(!id||!confirm('¿Eliminar este gasto?'))return;const {error}=await client.from('expenses').delete().eq('id',id);if(error){showMessage('appStatus','No se pudo eliminar el gasto.',true);return}await loadExpenses()});
-document.getElementById('date').value='2026-10-01';client.auth.getSession().then(({data})=>{if(data.session)enterApp(data.session)});client.auth.onAuthStateChange((_event,session)=>{if(session&&!currentSession)enterApp(session);else if(!session&&currentSession)leaveApp()});
+document.getElementById('date').value='2026-10-01';client.auth.getSession().then(({data})=>{if(data.session)enterApp(data.session)});client.auth.onAuthStateChange((_event,session)=>{
+  if(_event==='PASSWORD_RECOVERY'){
+    authPanel.classList.add('hide');
+    app.classList.add('hide');
+    document.getElementById('resetPanel').classList.remove('hide');
+    return;
+  }
+  if(session&&!currentSession)enterApp(session);
+  else if(!session&&currentSession)leaveApp();
+});
 </script></body></html>
 
 
