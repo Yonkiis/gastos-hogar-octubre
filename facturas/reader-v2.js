@@ -162,6 +162,22 @@ function parseMetroGas(text){
   );
   if(ci)out.account=candidate(ci[1],.99,'Número de cliente de MetroGAS','MetroGAS');
 
+  // En las facturas MetroGAS el rótulo y el número suelen venir
+  // separados en líneas distintas:
+  // "Número de cliente" / "30012204301".
+  if(!out.account){
+    const clientLabel=lines.findIndex(x=>/^N[ÚU]MERO\s+DE\s+CLIENTE\s*$/i.test(x));
+    if(clientLabel>=0){
+      for(let i=clientLabel+1;i<Math.min(lines.length,clientLabel+4);i++){
+        const x=lines[i].replace(/\s+/g,'').trim();
+        if(/^\d{6,14}$/.test(x)){
+          out.account=candidate(x,.99,'Número debajo de la etiqueta Número de cliente','MetroGAS');
+          break;
+        }
+      }
+    }
+  }
+
   // El titular se mantiene como candidato independiente: nunca se reemplaza
   // por "Código", "Actividades", IVA u otra etiqueta.
   const idx=lines.findIndex(x=>/METROGAS\s+S\.A\.?/i.test(x));
