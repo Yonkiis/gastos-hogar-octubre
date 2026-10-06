@@ -8,10 +8,11 @@ let expenses=[];
 let incomes={toto:0,rocio:0};
 let currentMonth=new Date().toISOString().slice(0,7);
 let editingId=null;
+let incomeHistoryRows=[];
 
 const $=id=>document.getElementById(id);
 const login=$('login'),app=$('app'),email=$('email'),password=$('password'),loginForm=$('loginForm'),loginMsg=$('loginMsg');
-const incomeForm=$('incomeForm'),incomeMsg=$('incomeMsg'),incomeSummary=$('incomeSummary');
+const incomeForm=$('incomeForm'),incomeMsg=$('incomeMsg'),incomeSummary=$('incomeSummary'),incomeHistory=$('incomeHistory'),modifyIncome=$('modifyIncome');
 const totoIncome=$('totoIncome'),rocioIncome=$('rocioIncome');
 const expenseForm=$('expenseForm'),expenseMsg=$('expenseMsg');
 const date=$('date'),dateDisplay=$('dateDisplay'),editDateDisplay=$('editDateDisplay'),category=$('category'),amount=$('amount'),detail=$('detail'),paidBy=$('paidBy');
@@ -30,9 +31,16 @@ function resetEdit(){editingId=null;editBox.classList.add('hide')}
 async function loadIncome(){
  const r=await db.from('household_incomes').select('*').eq('month_key',currentMonth).maybeSingle();
  if(r.error){incomeMsg.textContent=r.error.message;return}
+ const h=await db.from('household_income_history').select('*').eq('month_key',currentMonth).order('modified_at',{ascending:false});
+ if(h.error){incomeMsg.textContent=h.error.message;return}
+ incomeHistoryRows=h.data||[];
  incomes={toto:Number(r.data?.toto_income)||0,rocio:Number(r.data?.rocio_income)||0};
  totoIncome.value=incomes.toto?money(incomes.toto):'';rocioIncome.value=incomes.rocio?money(incomes.rocio):'';
- renderIncome()
+ const hasIncome=!!r.data && (incomes.toto>0 || incomes.rocio>0);
+ incomeForm.classList.toggle('hide',hasIncome);
+ modifyIncome.classList.toggle('hide',!hasIncome);
+ renderIncome();
+ renderIncomeHistory();
 }
 async function loadExpenses(){
  const rr=monthRange(currentMonth);
@@ -50,6 +58,16 @@ function renderIncome(){
  '<div class="line"><span>Ingresos totales</span><b>'+money(totalIncome)+'</b></div>';
  renderBalance(expenses.reduce((s,x)=>s+(Number(x.amount)||0),0))
 }
+function renderIncomeHistory(){
+ if(!incomeHistory)return;
+ if(!incomeHistoryRows.length){incomeHistory.innerHTML='';return}
+ const rows=incomeHistoryRows.map(x=>{
+  const when=new Date(x.modified_at).toLocaleString('es-AR',{dateStyle:'short',timeStyle:'short'});
+  return '<div style="margin-top:8px"><b>'+when+'</b> · Toto '+money(x.toto_income)+' · Rocío '+money(x.rocio_income)+'</div>';
+ }).join('');
+ incomeHistory.innerHTML='<div style="margin-top:12px"><b>Registro de modificaciones</b>'+rows+'</div>';
+}
+
 function render(){
  list.innerHTML='';let total=0;
  expenses.forEach(x=>{
@@ -92,10 +110,24 @@ loginForm.onsubmit=async e=>{e.preventDefault();loginMsg.textContent='';const r=
 function show(){login.classList.add('hide');app.classList.remove('hide');setMonth(currentMonth)}
 logout.onclick=async()=>{await db.auth.signOut();location.reload()};
 expenseForm.onsubmit=async e=>{e.preventDefault();const row={expense_date:date.value,category:category.value,description:detail.value.trim(),amount:parse(amount.value),paid_by:paidBy.value};if(!row.amount){expenseMsg.textContent='Ingresá un importe válido.';return}const r=await db.from('household_expenses').insert(row).select('*').single();if(r.error){expenseMsg.textContent=r.error.message;return}amount.value='';detail.value='';expenseMsg.textContent='Gasto guardado correctamente.';await loadExpenses()};
-incomeForm.onsubmit=async e=>{e.preventDefault();const toto=parse(totoIncome.value),rocio=parse(rocioIncome.value);const r=await db.from('household_incomes').upsert({month_key:currentMonth,toto_income:toto,rocio_income:rocio,updated_at:new Date().toISOString()},{onConflict:'month_key'});if(r.error){incomeMsg.textContent=r.error.message;return}incomes={toto,rocio};renderIncome();render();incomeMsg.textContent='Ingresos guardados correctamente.'};
+incomeForm.onsubmit=async e=>{
+ e.preventDefault();
+ const toto=parse(totoIncome.value),rocio=parse(rocioIncome.value);
+ if(!toto && !rocio){incomeMsg.textContent='Ingresá al menos un sueldo.';return}
+ const now=new Date().toISOString();
+ const r=await db.from('household_incomes').upsert({month_key:currentMonth,toto_income:toto,rocio_income:rocio,updated_at:now},{onConflict:'month_key'});
+ if(r.error){incomeMsg.textContent=r.error.message;return}
+ const h=await db.from('household_income_history').insert({month_key:currentMonth,toto_income:toto,rocio_income:rocio,modified_at:now});
+ if(h.error){incomeMsg.textContent=h.error.message;return}
+ incomes={toto,rocio};
+ incomeMsg.textContent='Ingresos guardados correctamente.';
+ await loadIncome();
+ render();
+};
 $('monthForm').onsubmit=e=>{e.preventDefault();setMonth(monthPicker.value)};
 $('prevMonth').onclick=()=>{const d=new Date(currentMonth+'-01T12:00:00');d.setMonth(d.getMonth()-1);setMonth(d.toISOString().slice(0,7))};
 $('nextMonth').onclick=()=>{const d=new Date(currentMonth+'-01T12:00:00');d.setMonth(d.getMonth()+1);setMonth(d.toISOString().slice(0,7))};
+modifyIncome.onclick=()=>{incomeForm.classList.remove('hide');modifyIncome.classList.add('hide');incomeMsg.textContent='Podés modificar los sueldos y guardar nuevamente.';totoIncome.focus()};
 cancelEdit.onclick=resetEdit;
 $('editForm').onsubmit=async e=>{e.preventDefault();if(!editingId)return;const row={expense_date:editDate.value,category:editCategory.value,description:editDetail.value.trim(),amount:parse(editAmount.value),paid_by:editPaidBy.value};if(!row.amount){$('editMsg').textContent='Ingresá un importe válido.';return}const r=await db.from('household_expenses').update(row).eq('id',editingId);if(r.error){$('editMsg').textContent=r.error.message;return}$('editMsg').textContent='Gasto actualizado.';resetEdit();await loadExpenses()};
 ['totoIncome','rocioIncome','amount','editAmount'].forEach(id=>$(id).addEventListener('input',e=>formatField(e.target)));
