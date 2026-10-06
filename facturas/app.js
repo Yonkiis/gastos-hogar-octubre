@@ -73,11 +73,22 @@ function renderAnalysis(result){
 async function readViaZerodoc(file){
   const form=new FormData();
   form.append('file',file,file.name);
-  const r=await fetch(SUPABASE_URL+'/functions/v1/zerodoc-extract',{
-    method:'POST',
-    headers:{apikey:SUPABASE_KEY},
-    body:form
-  });
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),30000);
+  let r;
+  try{
+    r=await fetch(SUPABASE_URL+'/functions/v1/zerodoc-extract',{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY},
+      body:form,
+      signal:controller.signal
+    });
+  }catch(e){
+    if(e.name==='AbortError') throw new Error('El lector inteligente tardó demasiado en responder.');
+    throw e;
+  }finally{
+    clearTimeout(timeout);
+  }
   if(!r.ok) throw new Error('Zerodoc: '+(await r.text()));
   const z=await r.json();
   if(z.status && z.status!=='ok') throw new Error('Zerodoc no pudo procesar la factura.');
