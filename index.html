@@ -5,21 +5,41 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Gastos compartidos</title>
 <style>
-body{font-family:Arial;margin:0;background:#f4f7fb;color:#202b3c}
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:#f4f7fb;color:#202b3c;-webkit-text-size-adjust:100%}
 .wrap{max-width:900px;margin:auto;padding:24px}
-.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:1px solid #ddd;border-radius:12px}
-h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field label{display:block;font-weight:bold;margin-bottom:5px}
-.field input,.field select{width:100%;padding:11px;box-sizing:border-box;border:1px solid #bbb;border-radius:8px}
-.btn{padding:11px 16px;background:#183153;color:#fff;border:0;border-radius:8px;font-weight:bold}
-.expense{padding:14px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:#fff}
-.top{display:flex;justify-content:space-between}.detail{margin-top:7px;font-weight:bold}
+.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:1px solid #ddd;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+h1,h2{color:#183153}h1{margin:0 0 5px}h2{font-size:20px;margin-top:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{display:block;font-weight:bold;margin-bottom:6px}
+.field input,.field select{width:100%;padding:13px;border:1px solid #bbb;border-radius:9px;background:#fff;font-size:16px;min-height:46px}
+.btn{padding:12px 16px;background:#183153;color:#fff;border:0;border-radius:9px;font-weight:bold;font-size:15px;min-height:44px}
+.expense{padding:14px;border:1px solid #ddd;border-radius:11px;margin:10px 0;background:#fff}
+.top{display:flex;justify-content:space-between;gap:12px}.detail{margin-top:7px;font-weight:bold}
 .meta{margin-top:6px;color:#687386;font-size:13px}.delete{margin-top:9px}.hide{display:none}
 .summary{background:#eef4ff;border-radius:10px;padding:15px;margin-top:15px}
 .balance{background:#fff4df;border:1px solid #e7c77d;border-radius:10px;padding:15px;margin-top:12px}
-.ok{background:#eaf8ee;border-color:#9bd0aa}
-.line{display:flex;justify-content:space-between;margin:7px 0;gap:15px}
-@media(max-width:650px){.grid{grid-template-columns:1fr}.line{display:block}.line b{display:block;margin-top:3px}}
+.ok{background:#eaf8ee;border-color:#9bd0aa}.line{display:flex;justify-content:space-between;margin:7px 0;gap:15px}
+@media(max-width:650px){
+ body{font-size:15px}
+ .wrap{padding:10px}
+ .panel,.auth{padding:15px;margin:10px 0;border-radius:12px}
+ .wrap>div:first-child{padding:4px 2px}
+ h1{font-size:25px}.panel h2{font-size:18px}
+ .grid{grid-template-columns:1fr;gap:10px}
+ .field input,.field select{min-height:48px}
+ .btn{width:100%;min-height:46px}
+ .top{align-items:flex-start}.top b{font-size:18px}
+ .expense{padding:13px}
+ .expense .btn,.expense .delete{width:auto;min-height:40px;padding:9px 12px}
+ .line{display:flex;flex-direction:column;gap:2px;margin:9px 0}
+ .line b{display:block}
+ #logout{width:auto;margin-top:0}
+ #monthForm{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+ #monthPicker{grid-column:1 / -1;grid-row:1;width:100%;min-height:48px}
+ #prevMonth{grid-column:1;grid-row:2}
+ #nextMonth{grid-column:2;grid-row:2}
+}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#183153">
