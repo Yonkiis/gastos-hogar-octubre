@@ -21,6 +21,8 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .line{display:flex;justify-content:space-between;margin:7px 0;gap:15px}
 @media(max-width:650px){.grid{grid-template-columns:1fr}.line{display:block}.line b{display:block;margin-top:3px}}
 </style>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#183153">
 </head>
 <body>
 <section id="login" class="auth">
@@ -34,13 +36,21 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 </section>
 
 <main id="app" class="wrap hide">
-<div style="display:flex;justify-content:space-between;align-items:center">
-<div><h1>Gastos de octubre</h1><p>Reparto proporcional según sueldo</p></div>
-<div>Octubre 2026 · v4.1 <button id="logout" class="delete">Salir</button></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div><h1>Gastos compartidos</h1><p>Reparto proporcional según sueldo</p></div>
+<div><button id="logout" class="delete">Salir</button></div>
 </div>
+<section class="panel">
+<h2>Mes</h2>
+<form id="monthForm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<button type="button" id="prevMonth" class="btn">← Anterior</button>
+<input id="monthPicker" type="month" required>
+<button type="button" id="nextMonth" class="btn">Siguiente →</button>
+</form>
+</section>
 
 <section class="panel">
-<h2>Ingresos del hogar</h2>
+<h2>Ingresos del hogar · <span id="monthTitle"></span></h2>
 <form id="incomeForm">
 <div class="grid">
 <div class="field"><label>Sueldo Toto</label><input id="totoIncome" inputmode="numeric" placeholder="$1.000.000"></div>
@@ -53,7 +63,7 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 </section>
 
 <section class="panel">
-<h2>Agregar gasto de octubre</h2>
+<h2 id="expenseTitle">Agregar gasto</h2>
 <form id="expenseForm">
 <div class="grid">
 <div class="field"><label>Fecha</label><input id="date" type="date" min="2026-10-01" max="2026-10-31" required></div>
@@ -67,8 +77,22 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <div id="expenseMsg"></div>
 </section>
 
+<section id="editBox" class="panel hide">
+<h2>Editar gasto</h2>
+<form id="editForm">
+<div class="grid">
+<div class="field"><label>Fecha</label><input id="editDate" type="date" required></div>
+<div class="field"><label>Categoría</label><select id="editCategory"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div>
+<div class="field"><label>Importe</label><input id="editAmount" inputmode="numeric" required></div>
+<div class="field"><label>Detalle</label><input id="editDetail"></div>
+<div class="field"><label>Pagó</label><select id="editPaidBy"><option>Rocío</option><option>Toto</option></select></div>
+</div>
+<p><button class="btn">Guardar cambios</button> <button type="button" id="cancelEdit" class="delete">Cancelar</button></p>
+</form>
+<div id="editMsg"></div>
+</section>
 <section class="panel">
-<h2>Gastos cargados en octubre <span id="count"></span></h2>
+<h2 id="historyTitle">Gastos cargados <span id="count"></span></h2>
 <div id="list"></div>
 <hr>
 <b>Total de gastos del mes: <span id="total">$0</span></b>
@@ -76,6 +100,7 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
 </main>
 <script src="./supabase.js?v=7"></script>
-<script src="./app.js?v=3"></script>
+<script src="./app.js?v=4"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");</script>
 </body>
 </html>
