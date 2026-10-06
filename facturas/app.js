@@ -1,4 +1,4 @@
-import { readInvoiceFile } from './reader-v2.js?v=28';
+import { readInvoiceFile } from './reader-v2.js?v=29';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL='https://vbhvitwbcbymfafnfmdw.supabase.co';
