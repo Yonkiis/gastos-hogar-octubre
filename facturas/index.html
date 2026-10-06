@@ -19,7 +19,7 @@
 </main>
 <div id="modal" class="modal hidden"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">Nueva factura</h2><button id="closeModal">×</button></div>
 <div id="dropzone" class="dropzone"><b>Subí la factura</b><span>PDF o imagen</span><input id="fileInput" type="file" accept=".pdf,image/*"></div>
-<div id="reading" class="reading hidden">⏳ Analizando factura...</div>
+<div id="reading" class="reading hidden">⏳ Analizando factura...</div><button id="debugPdfBtn" class="secondary" type="button" style="margin:10px 0;display:none">🔎 Ver lectura del PDF</button><pre id="debugPdf" class="hidden" style="white-space:pre-wrap;max-height:320px;overflow:auto;background:#f3f4f6;padding:12px;border-radius:10px;font-size:12px"></pre>
 <div class="formgrid">
 <label>Servicio<select id="service"><option>Luz</option><option>Gas</option><option>Agua</option><option>Internet</option><option>Seguro de auto</option><option>Alquiler</option><option>ARBA departamento</option><option>ARBA cochera</option><option>Municipal</option><option>Municipal cochera</option><option>Expensas</option><option>Otro</option></select></label>
 <label>Empresa<input id="company"></label><label>Importe<input id="amount" inputmode="decimal" placeholder="$0"></label>
@@ -29,5 +29,5 @@
 <div id="fileInfo" class="fileInfo"></div><label style="display:block;margin-top:12px;font-size:13px;font-weight:700">Comprobante de pago (opcional)<input id="receiptInput" type="file" accept=".pdf,image/*" style="display:block;margin-top:6px"></label><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Factura</h2><button id="closeView">×</button></div><iframe id="viewer" title="Factura"></iframe></div></div>
-<script type="module" src="app.js?v=2"></script>
+<script type="module" src="app.js?v=3"></script>
 </body></html>
