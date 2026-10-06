@@ -211,29 +211,27 @@ function parseArlo(text){
   const lines=linesOf(t);
   const out={};
 
-  // ARLO / Municipalidad de Lomas de Zamora:
-  // el PDF trae una boleta de "LIQUIDACIÓN DE TASAS Y DERECHOS MUNICIPALES".
   const account=first(
-    t.match(/N[°º]\\.?\s*Liq\\.?\\s*[0-9\\s-]+\\s+Cuenta\\s+(\\d{5,12})/i),
-    t.match(/Cuenta\\s*[:#-]?\\s*(\\d{5,12})/i)
+    t.match(/N[°º]\.?\s*Liq\.?\s*[0-9\s-]+\s+Cuenta\s+(\d{5,12})/i),
+    t.match(/Cuenta\s*[:#-]?\s*(\d{5,12})/i)
   );
   if(account) out.account=candidate(account[1],.99,'Cuenta de ARLO','ARLO');
 
-  const holder=t.match(/Contribuyente\\s+([^\\n]+?)(?=\\s+Domicilio|$)/i);
+  const holder=t.match(/Contribuyente\s+([^\n]+?)(?=\s+Domicilio|$)/i);
   if(holder){
     const value=holder[1].trim();
     if(value) out.holder=candidate(value,.99,'Contribuyente de ARLO','ARLO');
   }
 
-  const issue=t.match(/Fecha\\s+Emisi[óo]n\\s*:\\s*(\\d{1,2}\\/\\d{1,2}\\/\\d{4})/i);
+  const issue=t.match(/Fecha\s+Emisi[óo]n\s*:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
   if(issue) out.issue=candidate(dateISO(issue[1]),.99,'Fecha Emisión de ARLO','ARLO');
 
-  const due=t.match(/Vencimiento\\s+(\\d{1,2}\\/\\d{1,2}\\/\\d{4})/i);
+  const due=t.match(/Vencimiento\s+(\d{1,2}\/\d{1,2}\/\d{4})/i);
   if(due) out.due=candidate(dateISO(due[1]),.99,'Vencimiento de ARLO','ARLO');
 
   const amount=first(
-    t.match(/Importe\\s+a\\s+pagar\\s+\\$?\\s*([0-9.,]+)/i),
-    t.match(/TOTAL\\s+\\$?\\s*[0-9.,]+\\s+[0-9.,]+\\s+([0-9.,]+)/i)
+    t.match(/Importe\s+a\s+pagar\s+\$?\s*([0-9.,]+)/i),
+    t.match(/TOTAL\s+\$?\s*[0-9.,]+\s+[0-9.,]+\s+([0-9.,]+)/i)
   );
   if(amount) out.amount=candidate(moneyAR(amount[1]),.99,'Importe a pagar de ARLO','ARLO');
 
