@@ -38,30 +38,26 @@ if(!account){
 /* MetroGAS residencial: el bloque superior contiene un número de referencia,
    luego el nombre del titular y después la dirección. El número de cliente
    está separado y se obtiene arriba mediante la etiqueta "Número de cliente". */
-const metroIndex=lines.findIndex(x=>/METROGAS\s+S\.A\.?/i.test(x));
-if(metroIndex>=0){
-  const section=lines.slice(metroIndex,Math.min(lines.length,metroIndex+30));
+// MetroGAS: usamos la estructura real del PDF. El primer número largo
+// después de MetroGAS es la referencia de la factura; a continuación puede
+// aparecer "Actividades..." y luego el nombre del titular.
+const metroBlock=clean.match(/METROGAS\s+S\.A\.?[\s\S]{0,700}?\b\d{10,12}\b[^\n]*(?:\n\s*ACTIVIDADES[^\n]*)?\n\s*([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,7})\s*(?=\n|$)/i);
+if(metroBlock) holder=metroBlock[1].trim();
 
-  // MetroGAS: en la lectura real del PDF el titular aparece en una línea
-  // independiente, en mayúsculas, después del bloque de datos de la empresa.
-  // Ejemplo: "140003480688 Actividades: 28/12/92" y luego
-  // "AMELIA ELENA VILLAREAL".
-  for(let j=1;j<section.length;j++){
-    const candidate=section[j].trim().replace(/\s+/g,' ');
-    if(/N[ÚU]MERO\s+DE\s+CLIENTE/i.test(candidate)) break;
-    if(/^\d/.test(candidate)) continue;
-    if(/^(ACTIVIDADES|CÓDIGO|CODIGO|RESPONSABLE|INSCRIPTO|BRUT|METROGAS|G\.|IVA)\b/i.test(candidate)) continue;
-    if(/^[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,7}$/.test(candidate)){
-      holder=candidate;
-      break;
+if(!holder){
+  const metroIndex=lines.findIndex(x=>/METROGAS\s+S\.A\.?/i.test(x));
+  if(metroIndex>=0){
+    const section=lines.slice(metroIndex,Math.min(lines.length,metroIndex+30));
+    for(let j=1;j<section.length;j++){
+      const candidate=section[j].trim().replace(/\s+/g,' ');
+      if(/N[ÚU]MERO\s+DE\s+CLIENTE/i.test(candidate)) break;
+      if(/^\d/.test(candidate)) continue;
+      if(/^(ACTIVIDADES|CÓDIGO|CODIGO|RESPONSABLE|INSCRIPTO|BRUT|METROGAS|G\.|IVA)\b/i.test(candidate)) continue;
+      if(/^[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,7}$/.test(candidate)){
+        holder=candidate;
+        break;
+      }
     }
-  }
-
-  // Respaldo: buscar directamente el bloque real alrededor del número de
-  // referencia y "Número de cliente", ignorando la línea de Actividades.
-  if(!holder){
-    const metroBlock=clean.match(/METROGAS\s+S\.A\.?[\s\S]{0,450}?\b\d{10,12}\b[^\n]*\n(?:ACTIVIDADES[^\n]*\n)?([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,7})\s*\n[\s\S]{0,250}?N[ÚU]MERO\s+DE\s+CLIENTE/i);
-    if(metroBlock) holder=metroBlock[1].trim();
   }
 }
 }else{
