@@ -168,24 +168,19 @@ showMessage('incomeStatus','Sueldos guardados. El reparto y el saldo se recalcul
     if(digits) el.value=new Intl.NumberFormat('es-AR').format(Number(digits));
   });
   el.addEventListener('blur',e=>formatMoneyInput(e.target));
-});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {data:savedExpense,error}=await client.from('expenses').insert(row).select('*').single();
+});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {error}=await client.from('expenses').insert(row);
 if(error){
   console.error('expenses insert error:', error);
   const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
   showMessage('appStatus','ERROR DE SUPABASE AL GUARDAR: '+detalle,true);
   return;
 }
-if(!savedExpense){
-  showMessage('appStatus','Supabase guardó el gasto pero no devolvió el registro. Actualizando la lista…',true);
-}
 document.getElementById('amount').value='';
 document.getElementById('detail').value='';
+showMessage('appStatus','Gasto guardado. Actualizando la lista…');
 await loadExpenses();
-if(expenses.some(x=>String(x.id)===String(savedExpense?.id))){
-  showMessage('appStatus','Gasto agregado correctamente.');
-}else{
-  showMessage('appStatus','El gasto se guardó, pero no aparece al leer la lista. Revisá las políticas de lectura (RLS) de expenses.',true);
-}});
+showMessage('appStatus','Gasto agregado correctamente.');
+});
 document.getElementById('expenseRows').addEventListener('click',async e=>{const id=e.target.dataset.id;if(!id||!confirm('¿Eliminar este gasto?'))return;const {error}=await client.from('expenses').delete().eq('id',id);if(error){showMessage('appStatus','No se pudo eliminar el gasto.',true);return}await loadExpenses()});
 document.getElementById('date').value='2026-10-01';
 
