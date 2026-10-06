@@ -49,7 +49,7 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <p><button class="btn">Guardar ingresos</button></p>
 </form>
 <div id="incomeMsg"></div>
-<div id="incomeSummary" class="summary"></div>
+<div id="incomeSummary" class="summary"></div><div id="balance" class="balance"></div>
 </section>
 
 <section class="panel">
@@ -74,10 +74,6 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <b>Total de gastos del mes: <span id="total">$0,00</span></b>
 </section>
 
-<section class="panel">
-<h2>¿Quién le debe a quién?</h2>
-<div id="balance" class="balance"></div>
-</section>
 </main>
 
 <script src="./supabase.js?v=5"></script>
@@ -90,6 +86,13 @@ const db=window.supabase.createClient(
 
 let expenses=[];
 let incomes={toto:0,rocio:0};
+const login=document.getElementById('login'),app=document.getElementById('app');
+const email=document.getElementById('email'),password=document.getElementById('password'),loginForm=document.getElementById('loginForm'),loginMsg=document.getElementById('loginMsg');
+const incomeForm=document.getElementById('incomeForm'),incomeMsg=document.getElementById('incomeMsg'),incomeSummary=document.getElementById('incomeSummary');
+const totoIncome=document.getElementById('totoIncome'),rocioIncome=document.getElementById('rocioIncome');
+const expenseForm=document.getElementById('expenseForm'),expenseMsg=document.getElementById('expenseMsg');
+const date=document.getElementById('date'),category=document.getElementById('category'),amount=document.getElementById('amount'),detail=document.getElementById('detail'),paidBy=document.getElementById('paidBy');
+const list=document.getElementById('list'),count=document.getElementById('count'),totalEl=document.getElementById('total'),balance=document.getElementById('balance'),logout=document.getElementById('logout');
 const month='2026-10';
 
 const money=n=>'$'+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
