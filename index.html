@@ -25,12 +25,12 @@
 <main class="wrap hide" id="app">
 <header class="top"><div><div class="eyebrow">Presupuesto del hogar</div><h1>Gastos de octubre</h1><p>Lista compartida · se actualiza en línea</p></div><div class="userbar"><button id="signout" class="smallbtn" type="button">Cerrar sesión</button><div class="badge">Octubre 2026</div></div></header>
 <section class="cards">
-<article class="settlement-card" id="herOwesCard"><div class="label" id="herOwesLabel">Ella te debe</div><div class="value" id="herOwes">$ 0</div><div class="sub" id="herOwesSub">Según los gastos y los sueldos cargados</div></article>
-<article class="settlement-card" id="youOweCard"><div class="label" id="youOweLabel">Vos le debés</div><div class="value" id="youOwe">$ 0</div><div class="sub" id="youOweSub">Según los gastos y los sueldos cargados</div></article>
+<article class="settlement-card" id="herOwesCard"><div class="label" id="herOwesLabel">Rocío te debe</div><div class="value" id="herOwes">$ 0</div><div class="sub" id="herOwesSub">Según los gastos y los sueldos cargados</div></article>
+<article class="settlement-card" id="youOweCard"><div class="label" id="youOweLabel">Toto le debe</div><div class="value" id="youOwe">$ 0</div><div class="sub" id="youOweSub">Según los gastos y los sueldos cargados</div></article>
 </section>
-<section class="panel"><div class="panelhead"><h2>Ingresos del hogar</h2><span class="hint">Se usan para calcular el reparto</span></div><form id="incomeForm"><div class="sharegrid"><div class="field"><label for="yourIncome">Tu sueldo mensual (ARS)</label><input id="yourIncome" type="text" inputmode="numeric" autocomplete="off" placeholder="1.500.000" required></div><div class="field"><label for="herIncome">Sueldo mensual de ella (ARS)</label><input id="herIncome" type="text" inputmode="numeric" autocomplete="off" placeholder="950.000" required></div></div><div class="actions"><span class="hint">Ejemplo: 1.500.000</span><button class="btn" type="submit">Guardar ingresos</button></div></form><div id="incomeStatus" class="status" role="status"></div></section><section class="panel"><div class="panelhead"><h2>Reparto proporcional</h2><span class="hint">Según los sueldos cargados</span></div><div class="sharegrid"><div class="sharebox"><span id="herPercent">Ella · 0%</span><strong id="herShare">$ 0</strong><span>Su parte del total</span></div><div class="sharebox"><span id="yourPercent">Vos · 0%</span><strong id="yourShare">$ 0</strong><span>Tu parte del total</span></div></div></section>
+<section class="panel"><div class="panelhead"><h2>Ingresos del hogar</h2><span class="hint">Se usan para calcular el reparto</span></div><form id="incomeForm"><div class="sharegrid"><div class="field"><label for="yourIncome">Sueldo mensual de Toto (ARS)</label><input id="yourIncome" type="text" inputmode="numeric" autocomplete="off" placeholder="1.500.000" required></div><div class="field"><label for="herIncome">Sueldo mensual de Rocío (ARS)</label><input id="herIncome" type="text" inputmode="numeric" autocomplete="off" placeholder="950.000" required></div></div><div class="actions"><span class="hint">Ejemplo: 1.500.000</span><button class="btn" type="submit">Guardar ingresos</button></div></form><div id="incomeStatus" class="status" role="status"></div></section><section class="panel"><div class="panelhead"><h2>Reparto proporcional</h2><span class="hint">Según los sueldos cargados</span></div><div class="sharegrid"><div class="sharebox"><span id="herPercent">Rocío · 0%</span><strong id="herShare">$ 0</strong><span>Parte de Rocío</span></div><div class="sharebox"><span id="yourPercent">Toto · 0%</span><strong id="yourShare">$ 0</strong><span>Parte de Toto</span></div></div></section>
 
-<section class="panel"><div class="panelhead"><h2>Agregar gasto de octubre</h2></div><form id="expenseForm"><div class="formgrid"><div class="field"><label for="date">Fecha</label><input id="date" type="date" min="2026-10-01" max="2026-10-31" required></div><div class="field"><label for="category">Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div><div class="field"><label for="amount">Importe (ARS)</label><input id="amount" type="text" inputmode="numeric" autocomplete="off" placeholder="1.500.000" required></div><div class="field"><label for="detail">Detalle</label><input id="detail" type="text" maxlength="70" placeholder="Opcional"></div><div class="field"><label for="paidBy">Pagó</label><select id="paidBy"><option>Ella</option><option>Yo</option></select></div><button class="btn" type="submit">Agregar</button></div></form><p class="note">Los cambios se guardan en la base compartida y aparecen en ambos teléfonos.</p><div id="appStatus" class="status" role="status"></div></section>
+<section class="panel"><div class="panelhead"><h2>Agregar gasto de octubre</h2></div><form id="expenseForm"><div class="formgrid"><div class="field"><label for="date">Fecha</label><input id="date" type="date" min="2026-10-01" max="2026-10-31" required></div><div class="field"><label for="category">Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div><div class="field"><label for="amount">Importe (ARS)</label><input id="amount" type="text" inputmode="numeric" autocomplete="off" placeholder="1.500.000" required></div><div class="field"><label for="detail">Detalle</label><input id="detail" type="text" maxlength="70" placeholder="Opcional"></div><div class="field"><label for="paidBy">Pagó</label><select id="paidBy"><option>Rocío</option><option>Toto</option></select></div><button class="btn" type="submit">Agregar</button></div></form><p class="note">Los cambios se guardan en la base compartida y aparecen en ambos teléfonos.</p><div id="appStatus" class="status" role="status"></div></section>
 <section class="panel"><div class="panelhead"><h2>Gastos cargados en octubre</h2><span class="hint" id="entryCount">0 gastos</span></div><div id="empty" class="empty">Todavía no agregaron gastos variables.</div><div class="tablewrap"><table id="expenseTable" class="hide"><thead><tr><th>Fecha</th><th>Categoría y detalle</th><th>Pagó</th><th style="text-align:right">Importe</th><th></th></tr></thead><tbody id="expenseRows"></tbody><tfoot><tr><td colspan="3">Total de gastos agregados</td><td class="amount" id="variableFoot"></td><td></td></tr></tfoot></table></div></section>
 </main>
 <script src="./supabase.js?v=3"></script>
@@ -77,22 +77,22 @@ async function loadIncomes(){if(!currentSession)return;const {data,error}=await 
 }
 function render(){
   const variable=expenses.filter(x=>x.is_fixed!==true),
-    variableSum=variable.reduce((s,x)=>s+Number(x.amount),0),
+    variableSum=variable.reduce((s,x)=>s+Number(x.amount)||0,0),
     total=variableSum,
     incomeTotal=incomes.you+incomes.her,
     herPct=incomeTotal?incomes.her/incomeTotal:0,
     yourPct=incomeTotal?incomes.you/incomeTotal:0,
     herShouldPay=total*herPct,
     yourShouldPay=total-yourShouldPay,
-    herPaid=variable.filter(x=>String(x.paid_by).toLowerCase()==='ella').reduce((s,x)=>s+Number(x.amount),0),
-    yourPaid=variable.filter(x=>String(x.paid_by).toLowerCase()==='yo').reduce((s,x)=>s+Number(x.amount),0),
+    herPaid=variable.filter(x=>String(x.paid_by).toLowerCase()==='rocio' || String(x.paid_by).toLowerCase()==='rocío' || String(x.paid_by).toLowerCase()==='ella').reduce((s,x)=>s+Number(x.amount)||0,0),
+    yourPaid=variable.filter(x=>String(x.paid_by).toLowerCase()==='toto' || String(x.paid_by).toLowerCase()==='yo').reduce((s,x)=>s+Number(x.amount)||0,0),
     balance=herPaid-herShouldPay;
 
   document.getElementById('variableFoot').textContent=fmt(variableSum);
   document.getElementById('herShare').textContent=fmt(herShouldPay);
   document.getElementById('yourShare').textContent=fmt(yourShouldPay);
-  document.getElementById('herPercent').textContent=`Ella · ${(herPct*100).toFixed(2).replace('.',',')}%`;
-  document.getElementById('yourPercent').textContent=`Vos · ${(yourPct*100).toFixed(2).replace('.',',')}%`;
+  document.getElementById('herPercent').textContent=`Rocío · ${(herPct*100).toFixed(2).replace('.',',')}%`;
+  document.getElementById('yourPercent').textContent=`Toto · ${(yourPct*100).toFixed(2).replace('.',',')}%`;
 
   const herOwes=document.getElementById('herOwes'),
     youOwe=document.getElementById('youOwe'),
@@ -109,27 +109,27 @@ function render(){
   }else if(balance>0.005){
     herOwes.textContent=fmt(balance);
     youOwe.textContent=fmt(0);
-    document.getElementById('herOwesSub').textContent=`Ella pagó ${fmt(herPaid)} y le correspondía ${fmt(herShouldPay)}`;
-    document.getElementById('youOweSub').textContent='No tenés saldo pendiente con ella';
+    document.getElementById('herOwesSub').textContent=`Rocío pagó ${fmt(herPaid)} y le corresponde ${fmt(herShouldPay)}`;
+    document.getElementById('youOweSub').textContent='Toto no tiene saldo pendiente con Rocío';
     herCard.className='settlement-card positive';
     youCard.className='settlement-card';
   }else if(balance<-0.005){
     herOwes.textContent=fmt(0);
     youOwe.textContent=fmt(Math.abs(balance));
-    document.getElementById('herOwesSub').textContent='Ella no tiene saldo pendiente con vos';
-    document.getElementById('youOweSub').textContent=`Vos pagaste ${fmt(yourPaid)} y te correspondía ${fmt(yourShouldPay)}`;
+    document.getElementById('herOwesSub').textContent='Rocío no tiene saldo pendiente con Toto';
+    document.getElementById('youOweSub').textContent=`Toto pagó ${fmt(yourPaid)} y le corresponde ${fmt(yourShouldPay)}`;
     herCard.className='settlement-card';
     youCard.className='settlement-card negative';
   }else{
     herOwes.textContent=fmt(0);
     youOwe.textContent=fmt(0);
-    document.getElementById('herOwesSub').textContent='El gasto está repartido correctamente';
-    document.getElementById('youOweSub').textContent='No hay saldo pendiente entre ustedes';
+    document.getElementById('herOwesSub').textContent='Los gastos están repartidos correctamente';
+    document.getElementById('youOweSub').textContent='No hay saldo pendiente entre Toto y Rocío';
     herCard.className='settlement-card positive';
     youCard.className='settlement-card positive';
   }
 
-  document.getElementById('expenseRows').innerHTML=variable.map(x=>`<tr><td>${dateLabel(x.expense_date)}</td><td>${esc(x.category)}${x.description?` · ${esc(x.description)}`:''}</td><td>${esc(x.paid_by)}</td><td class="amount">${fmt(Number(x.amount))}</td><td><button class="delete" data-id="${esc(x.id)}">Eliminar</button></td></tr>`).join('');
+  document.getElementById('expenseRows').innerHTML=variable.map(x=>`<tr><td>${dateLabel(x.expense_date)}</td><td>${esc(x.category)}${x.description?` · ${esc(x.description)}`:''}</td><td>${esc(String(x.paid_by)==='Ella'?'Rocío':String(x.paid_by)==='Yo'?'Toto':x.paid_by)}</td><td class="amount">${fmt(Number(x.amount))}</td><td><button class="delete" data-id="${esc(x.id)}">Eliminar</button></td></tr>`).join('');
   document.getElementById('entryCount').textContent=`${variable.length} ${variable.length===1?'gasto':'gastos'}`;
   document.getElementById('empty').classList.toggle('hide',variable.length>0);
   document.getElementById('expenseTable').classList.toggle('hide',variable.length===0);
@@ -145,7 +145,9 @@ document.getElementById('incomeForm').addEventListener('submit',async e=>{e.prev
   showMessage('incomeStatus','ERROR DE SUPABASE: '+detalle,true);
   return;
 }
-incomes={you:your,her:her};render();showMessage('incomeStatus','Ingresos guardados correctamente.');});['yourIncome','herIncome','amount'].forEach(id=>{
+incomes={you:your,her:her};
+render();
+showMessage('incomeStatus','Sueldos guardados. El reparto y el saldo se recalcularon automáticamente con todos los gastos de octubre.');});['yourIncome','herIncome','amount'].forEach(id=>{
   const el=document.getElementById(id);
   el.addEventListener('input',()=>{
     const digits=el.value.replace(/\D/g,'');
