@@ -222,12 +222,20 @@ window.togglePaid=async(id,status)=>{
   if(error)alert(error.message);else loadBills();
 };
 
-window.viewFile=path=>{ path=decodeURIComponent(path);
+window.viewFile=path=>{ path=decodeURIComponent(path); path=decodeURIComponent(path);
   const {data}=db.storage.from('household-bills').getPublicUrl(path);
   $('viewer').src=data.publicUrl;
   $('viewModal').classList.remove('hidden');
 };
 
+$('billList').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-action]');
+  if(!btn)return;
+  const action=btn.dataset.action;
+  if(action==='edit')window.editBill(btn.dataset.id);
+  if(action==='toggle')window.togglePaid(btn.dataset.id,btn.dataset.status);
+  if(action==='file')window.viewFile(btn.dataset.path);
+});
 $('uploadBtn').onclick=openModal;
 $('uploadTop').onclick=openModal;
 $('closeModal').onclick=closeModal;
