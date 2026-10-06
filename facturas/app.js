@@ -131,6 +131,24 @@ async function readFile(file){
       result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
     }
 
+    // Zerodoc es el lector principal. Si deja algún campo vacío,
+    // completamos solamente los campos faltantes con el lector argentino local.
+    if(result.source==='zerodoc'){
+      const missing=['company','service','holder','account','amount','issue','due']
+        .filter(key=>!result.fields?.[key]?.value);
+      if(missing.length){
+        try{
+          $('reading').textContent='⏳ Completando campos faltantes...';
+          const local=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
+          for(const key of missing){
+            if(local.fields?.[key]?.value) result.fields[key]=local.fields[key];
+          }
+        }catch(localError){
+          console.warn('No se pudieron completar campos con el lector local:',localError);
+        }
+      }
+    }
+
     const f=result.fields||{};
     if(f.company?.value)$('company').value=f.company.value;
     if(f.service?.value)$('service').value=f.service.value;
