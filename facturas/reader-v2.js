@@ -154,8 +154,13 @@ function parseMetroGas(text){
   const issue=t.match(/FECHA\s+DE\s+EMISI[ÓO]N\s*:\s*([^\n]+)/i);
   if(issue)out.issue=candidate(dateISO(issue[1]),.99,'FECHA DE EMISIÓN','MetroGAS');
 
-  const ci=t.match(/N[ÚU]MERO\s+DE\s+CLIENTE[^\d]{0,50}(\d{8,12})/i);
-  if(ci)out.account=candidate(ci[1],.99,'NÚMERO DE CLIENTE','MetroGAS');
+  const ci=first(
+    t.match(/N[ÚU]MERO\s+DE\s+CLIENTE\s*[:#-]?\s*(\d{6,14})/i),
+    t.match(/N[°º]?\s*DE\s*CLIENTE\s*[:#-]?\s*(\d{6,14})/i),
+    t.match(/CLIENTE\s*N[°º]?\s*[:#-]?\s*(\d{6,14})/i),
+    t.match(/CLIENTE\s*[:#-]\s*(\d{6,14})/i)
+  );
+  if(ci)out.account=candidate(ci[1],.99,'Número de cliente de MetroGAS','MetroGAS');
 
   // El titular se mantiene como candidato independiente: nunca se reemplaza
   // por "Código", "Actividades", IVA u otra etiqueta.
