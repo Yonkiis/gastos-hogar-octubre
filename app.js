@@ -31,14 +31,16 @@ function resetEdit(){editingId=null;editBox.classList.add('hide')}
 async function loadIncome(){
  const r=await db.from('household_incomes').select('*').eq('month_key',currentMonth).maybeSingle();
  if(r.error){incomeMsg.textContent=r.error.message;return}
- const h=await db.from('household_income_history').select('*').eq('month_key',currentMonth).order('modified_at',{ascending:false});
- if(h.error){incomeMsg.textContent=h.error.message;return}
- incomeHistoryRows=h.data||[];
  incomes={toto:Number(r.data?.toto_income)||0,rocio:Number(r.data?.rocio_income)||0};
- totoIncome.value=incomes.toto?money(incomes.toto):'';rocioIncome.value=incomes.rocio?money(incomes.rocio):'';
+ totoIncome.value=incomes.toto?money(incomes.toto):'';
+ rocioIncome.value=incomes.rocio?money(incomes.rocio):'';
  const hasIncome=!!r.data && (incomes.toto>0 || incomes.rocio>0);
  incomeForm.classList.toggle('hide',hasIncome);
  modifyIncome.classList.toggle('hide',!hasIncome);
+ if(hasIncome) incomeMsg.textContent='';
+ const h=await db.from('household_income_history').select('*').eq('month_key',currentMonth).order('modified_at',{ascending:false});
+ incomeHistoryRows=h.error?[]:(h.data||[]);
+ if(h.error) incomeHistory.innerHTML='';
  renderIncome();
  renderIncomeHistory();
 }
