@@ -102,10 +102,10 @@ async function loadIncomes(){
       card.style.cssText='padding:14px;border:2px solid #d5deea;border-radius:10px;background:#fff;margin-bottom:8px';
       const title=document.createElement('div');
       title.style.cssText='font-weight:700;font-size:15px;color:#183153';
-      title.textContent=String(x.category||'Gasto');
+      title.textContent=String(x.category||'Gasto')+' — '+(String(x.description??'').trim()||'Sin detalle');
       const detail=document.createElement('div');
       detail.style.cssText='margin-top:6px;font-size:14px;color:#202b3c';
-      detail.textContent='Detalle: '+(String(x.description??'').trim()||'Sin detalle');
+      detail.textContent='Descripción guardada en Supabase: '+(String(x.description??'').trim()||'Sin detalle');
       card.appendChild(title);card.appendChild(detail);detailBox.appendChild(card);
     });
   }
