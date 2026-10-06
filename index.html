@@ -1,14 +1,264 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gastos compartidos</title><style>body{font-family:Arial;margin:0;background:#f4f7fb;color:#202b3c}.wrap{max-width:900px;margin:auto;padding:24px}.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:1px solid #ddd;border-radius:12px}h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-weight:bold;margin-bottom:5px}.field input,.field select{width:100%;padding:11px;box-sizing:border-box;border:1px solid #bbb;border-radius:8px}.btn{padding:11px 16px;background:#183153;color:#fff;border:0;border-radius:8px;font-weight:bold}.expense{padding:14px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:#fff}.top{display:flex;justify-content:space-between}.detail{margin-top:7px;font-weight:bold}.meta{margin-top:6px;color:#687386;font-size:13px}.delete{margin-top:9px}.hide{display:none}@media(max-width:650px){.grid{grid-template-columns:1fr}}</style></head><body><section id="login" class="auth"><h1>Gastos compartidos</h1><form id="loginForm"><div class="field"><label>Correo</label><input id="email" type="email" required></div><div class="field"><label>Contraseña</label><input id="password" type="password" required></div><button class="btn">Iniciar sesión</button></form><div id="loginMsg"></div></section><main id="app" class="wrap hide"><div style="display:flex;justify-content:space-between;align-items:center"><div><h1>Gastos de octubre</h1><p>Lista compartida</p></div><div>Octubre 2026 · v3.0 <button id="logout" class="delete">Salir</button></div></div><section class="panel"><h2>Ingresos del hogar</h2><form id="incomeForm"><div class="grid"><div class="field"><label>Sueldo Toto</label><input id="totoIncome" inputmode="numeric" placeholder="$1.000.000"></div><div class="field"><label>Sueldo Rocío</label><input id="rocioIncome" inputmode="numeric" placeholder="$1.000.000"></div></div><p><button class="btn">Guardar ingresos</button></p></form><div id="incomeMsg"></div></section><section class="panel"><h2>Agregar gasto de octubre</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Fecha</label><input id="date" type="date" min="2026-10-01" max="2026-10-31" required></div><div class="field"><label>Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div><div class="field"><label>Importe</label><input id="amount" inputmode="numeric" placeholder="$1.000.000" required></div><div class="field"><label>Detalle</label><input id="detail" placeholder="Ej.: Compramos carne"></div><div class="field"><label>Pagó</label><select id="paidBy"><option>Rocío</option><option>Toto</option></select></div></div><p><button class="btn">Agregar gasto</button></p></form><div id="expenseMsg"></div></section><section class="panel"><h2>Gastos cargados en octubre <span id="count"></span></h2><div id="list"></div><hr><b>Total: <span id="total">$ 0</span></b></section></main><script src="./supabase.js?v=5"></script><script>const db=window.supabase.createClient('https://xnexfqbcxvrloirhrteo.supabase.co','sb_publishable_S50gnzXMiYfh0O3IyqM6DQ_Kjqvdhlp',{auth:{persistSession:true,autoRefreshToken:true,storageKey:'gastos-hogar-v3'}});
-let expenses=[];const month='2026-10';
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gastos compartidos</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f7fb;color:#202b3c}
+.wrap{max-width:900px;margin:auto;padding:24px}
+.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:1px solid #ddd;border-radius:12px}
+h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{display:block;font-weight:bold;margin-bottom:5px}
+.field input,.field select{width:100%;padding:11px;box-sizing:border-box;border:1px solid #bbb;border-radius:8px}
+.btn{padding:11px 16px;background:#183153;color:#fff;border:0;border-radius:8px;font-weight:bold}
+.expense{padding:14px;border:1px solid #ddd;border-radius:10px;margin:10px 0;background:#fff}
+.top{display:flex;justify-content:space-between}.detail{margin-top:7px;font-weight:bold}
+.meta{margin-top:6px;color:#687386;font-size:13px}.delete{margin-top:9px}.hide{display:none}
+.summary{background:#eef4ff;border-radius:10px;padding:15px;margin-top:15px}
+.balance{background:#fff4df;border:1px solid #e7c77d;border-radius:10px;padding:15px;margin-top:12px}
+.ok{background:#eaf8ee;border-color:#9bd0aa}
+.line{display:flex;justify-content:space-between;margin:7px 0;gap:15px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.line{display:block}.line b{display:block;margin-top:3px}}
+</style>
+</head>
+<body>
+<section id="login" class="auth">
+<h1>Gastos compartidos</h1>
+<form id="loginForm">
+<div class="field"><label>Correo</label><input id="email" type="email" required></div>
+<div class="field"><label>Contraseña</label><input id="password" type="password" required></div>
+<button class="btn">Iniciar sesión</button>
+</form>
+<div id="loginMsg"></div>
+</section>
+
+<main id="app" class="wrap hide">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div><h1>Gastos de octubre</h1><p>Reparto proporcional según sueldo</p></div>
+<div>Octubre 2026 · v4.0 <button id="logout" class="delete">Salir</button></div>
+</div>
+
+<section class="panel">
+<h2>Ingresos del hogar</h2>
+<form id="incomeForm">
+<div class="grid">
+<div class="field"><label>Sueldo Toto</label><input id="totoIncome" inputmode="numeric" placeholder="$1.000.000"></div>
+<div class="field"><label>Sueldo Rocío</label><input id="rocioIncome" inputmode="numeric" placeholder="$1.000.000"></div>
+</div>
+<p><button class="btn">Guardar ingresos</button></p>
+</form>
+<div id="incomeMsg"></div>
+<div id="incomeSummary" class="summary"></div>
+</section>
+
+<section class="panel">
+<h2>Agregar gasto de octubre</h2>
+<form id="expenseForm">
+<div class="grid">
+<div class="field"><label>Fecha</label><input id="date" type="date" min="2026-10-01" max="2026-10-31" required></div>
+<div class="field"><label>Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div>
+<div class="field"><label>Importe</label><input id="amount" inputmode="numeric" placeholder="$1.000.000" required></div>
+<div class="field"><label>Detalle</label><input id="detail" placeholder="Ej.: Compramos carne"></div>
+<div class="field"><label>Pagó</label><select id="paidBy"><option>Rocío</option><option>Toto</option></select></div>
+</div>
+<p><button class="btn">Agregar gasto</button></p>
+</form>
+<div id="expenseMsg"></div>
+</section>
+
+<section class="panel">
+<h2>Gastos cargados en octubre <span id="count"></span></h2>
+<div id="list"></div>
+<hr>
+<b>Total de gastos del mes: <span id="total">$0,00</span></b>
+</section>
+
+<section class="panel">
+<h2>¿Quién le debe a quién?</h2>
+<div id="balance" class="balance"></div>
+</section>
+</main>
+
+<script src="./supabase.js?v=5"></script>
+<script>
+const db=window.supabase.createClient(
+'https://xnexfqbcxvrloirhrteo.supabase.co',
+'sb_publishable_S50gnzXMiYfh0O3IyqM6DQ_Kjqvdhlp',
+{auth:{persistSession:true,autoRefreshToken:true,storageKey:'gastos-hogar-v3'}}
+);
+
+let expenses=[];
+let incomes={toto:0,rocio:0};
+const month='2026-10';
+
 const money=n=>'$'+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const percent=n=>Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
 const parse=v=>Number(String(v||'').replace(/[^0-9]/g,''))||0;
-function formatField(el){const d=el.value.replace(/[^0-9]/g,'');el.value=d?'$'+Number(d).toLocaleString('es-AR'):''}
-async function load(){const r=await db.from('household_expenses').select('*').gte('expense_date','2026-10-01').lte('expense_date','2026-10-31').order('created_at',{ascending:true});if(r.error){expenseMsg.textContent=r.error.message;return}expenses=r.data||[];render()}
-function render(){list.innerHTML='';let total=0;expenses.forEach(x=>{total+=Number(x.amount);const d=document.createElement('div');d.className='expense';const top=document.createElement('div');top.className='top';const c=document.createElement('b');c.textContent=x.category;const a=document.createElement('b');a.textContent=money(x.amount);top.append(c,a);const det=document.createElement('div');det.className='detail';det.textContent='Detalle: '+(x.description||'Sin detalle');const meta=document.createElement('div');meta.className='meta';meta.textContent=x.expense_date+' · Pagó: '+x.paid_by;const del=document.createElement('button');del.className='delete';del.textContent='Eliminar';del.onclick=async()=>{if(confirm('¿Eliminar?')){await db.from('household_expenses').delete().eq('id',x.id);load()}};d.append(top,det,meta,del);list.append(d)});count.textContent='('+expenses.length+')';totalEl.textContent=money(total)}
-loginForm.onsubmit=async e=>{e.preventDefault();const r=await db.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(r.error){loginMsg.textContent=r.error.message;return}show()};
-function show(){login.classList.add('hide');app.classList.remove('hide');date.value='2026-10-01';load()}
+
+function formatField(el){
+ const d=el.value.replace(/[^0-9]/g,'');
+ el.value=d?'$'+Number(d).toLocaleString('es-AR'):'';
+}
+
+async function loadIncome(){
+ const r=await db.from('household_incomes').select('*').eq('month_key',month).maybeSingle();
+ if(r.error){incomeMsg.textContent=r.error.message;return}
+ if(r.data){
+   incomes.toto=Number(r.data.toto_income)||0;
+   incomes.rocio=Number(r.data.rocio_income)||0;
+   totoIncome.value=incomes.toto?money(incomes.toto):'';
+   rocioIncome.value=incomes.rocio?money(incomes.rocio):'';
+ }
+ renderIncome();
+}
+
+async function load(){
+ const r=await db.from('household_expenses').select('*')
+ .gte('expense_date','2026-10-01').lte('expense_date','2026-10-31')
+ .order('created_at',{ascending:true});
+ if(r.error){expenseMsg.textContent=r.error.message;return}
+ expenses=r.data||[];
+ render();
+}
+
+function renderIncome(){
+ const totalIncome=incomes.toto+incomes.rocio;
+ if(!totalIncome){
+   incomeSummary.innerHTML='<b>Cargá los dos sueldos para calcular automáticamente el porcentaje de cada uno.</b>';
+   return;
+ }
+ const tp=incomes.toto/totalIncome*100;
+ const rp=incomes.rocio/totalIncome*100;
+ incomeSummary.innerHTML=
+ '<div class="line"><span>Toto cobra</span><b>'+money(incomes.toto)+' · '+percent(tp)+'</b></div>'+
+ '<div class="line"><span>Rocío cobra</span><b>'+money(incomes.rocio)+' · '+percent(rp)+'</b></div>'+
+ '<div class="line"><span>Ingresos totales</span><b>'+money(totalIncome)+'</b></div>';
+}
+
+function render(){
+ list.innerHTML='';
+ let total=0;
+ expenses.forEach(x=>{
+   const amount=Number(x.amount)||0;
+   total+=amount;
+   const d=document.createElement('div');d.className='expense';
+   const top=document.createElement('div');top.className='top';
+   const c=document.createElement('b');c.textContent=x.category;
+   const a=document.createElement('b');a.textContent=money(amount);
+   top.append(c,a);
+   const det=document.createElement('div');det.className='detail';
+   det.textContent='Detalle: '+(x.description||'Sin detalle');
+   const meta=document.createElement('div');meta.className='meta';
+   meta.textContent=x.expense_date+' · Pagó: '+x.paid_by;
+   const parts=document.createElement('div');parts.className='meta';
+   const totalIncome=incomes.toto+incomes.rocio;
+   if(totalIncome){
+     parts.textContent='Parte Toto: '+money(amount*incomes.toto/totalIncome)+' · Parte Rocío: '+money(amount*incomes.rocio/totalIncome);
+   }else{
+     parts.textContent='Cargá los sueldos para calcular las partes.';
+   }
+   const del=document.createElement('button');del.className='delete';del.textContent='Eliminar';
+   del.onclick=async()=>{if(confirm('¿Eliminar este gasto?')){await db.from('household_expenses').delete().eq('id',x.id);await load()}};
+   d.append(top,det,meta,parts,del);
+   list.append(d);
+ });
+ count.textContent='('+expenses.length+')';
+ totalEl.textContent=money(total);
+ renderBalance(total);
+}
+
+function renderBalance(total){
+ const totalIncome=incomes.toto+incomes.rocio;
+ if(!totalIncome){
+   balance.innerHTML='<b>Faltan los sueldos del mes.</b>';
+   balance.className='balance';
+   return;
+ }
+ const totoShare=total*incomes.toto/totalIncome;
+ const rocioShare=total*incomes.rocio/totalIncome;
+ let totoPaid=0,rocioPaid=0;
+ expenses.forEach(x=>{
+   if(x.paid_by==='Toto')totoPaid+=Number(x.amount)||0;
+   if(x.paid_by==='Rocío')rocioPaid+=Number(x.amount)||0;
+ });
+ const totoDiff=totoPaid-totoShare;
+ const rocioDiff=rocioPaid-rocioShare;
+ let html=
+ '<div class="line"><span>Total de gastos</span><b>'+money(total)+'</b></div>'+
+ '<div class="line"><span>Toto debería pagar</span><b>'+money(totoShare)+'</b></div>'+
+ '<div class="line"><span>Rocío debería pagar</span><b>'+money(rocioShare)+'</b></div>'+
+ '<div class="line"><span>Toto pagó realmente</span><b>'+money(totoPaid)+'</b></div>'+
+ '<div class="line"><span>Rocío pagó realmente</span><b>'+money(rocioPaid)+'</b></div>';
+ const balanceValue=Math.abs(totoDiff);
+ if(balanceValue<0.01){
+   balance.className='balance ok';
+   html+='<hr><b>Están a mano. No se deben dinero entre ustedes.</b>';
+ }else if(totoDiff>0){
+   balance.className='balance';
+   html+='<hr><b>Rocío debe a Toto: '+money(balanceValue)+'</b>';
+ }else{
+   balance.className='balance';
+   html+='<hr><b>Toto debe a Rocío: '+money(balanceValue)+'</b>';
+ }
+ balance.innerHTML=html;
+}
+
+loginForm.onsubmit=async e=>{
+ e.preventDefault();
+ const r=await db.auth.signInWithPassword({email:email.value.trim(),password:password.value});
+ if(r.error){loginMsg.textContent=r.error.message;return}
+ show();
+};
+
+function show(){
+ login.classList.add('hide');
+ app.classList.remove('hide');
+ date.value='2026-10-01';
+ Promise.all([loadIncome(),load()]);
+}
+
 logout.onclick=async()=>{await db.auth.signOut();location.reload()};
-expenseForm.onsubmit=async e=>{e.preventDefault();const row={expense_date:date.value,category:category.value,description:detail.value.trim(),amount:parse(amount.value),paid_by:paidBy.value};const r=await db.from('household_expenses').insert(row).select('*').single();if(r.error){expenseMsg.textContent=r.error.message;return}expenses.push(r.data);render();amount.value='';detail.value='';expenseMsg.textContent='Gasto guardado correctamente.'};
-incomeForm.onsubmit=async e=>{e.preventDefault();const r=await db.from('household_incomes').upsert({month_key:month,toto_income:parse(totoIncome.value),rocio_income:parse(rocioIncome.value),updated_at:new Date().toISOString()},{onConflict:'month_key'});incomeMsg.textContent=r.error?r.error.message:'Ingresos guardados correctamente.'};
-['totoIncome','rocioIncome','amount'].forEach(id=>document.getElementById(id).addEventListener('input',e=>formatField(e.target)));
-db.auth.getSession().then(r=>{if(r.data.session)show()});</script></body></html>
+
+expenseForm.onsubmit=async e=>{
+ e.preventDefault();
+ const row={
+   expense_date:date.value,
+   category:category.value,
+   description:detail.value.trim(),
+   amount:parse(amount.value),
+   paid_by:paidBy.value
+ };
+ const r=await db.from('household_expenses').insert(row).select('*').single();
+ if(r.error){expenseMsg.textContent=r.error.message;return}
+ expenses.push(r.data);
+ render();
+ amount.value='';
+ detail.value='';
+ expenseMsg.textContent='Gasto guardado correctamente.';
+};
+
+incomeForm.onsubmit=async e=>{
+ e.preventDefault();
+ const toto=parse(totoIncome.value);
+ const rocio=parse(rocioIncome.value);
+ const r=await db.from('household_incomes').upsert(
+   {month_key:month,toto_income:toto,rocio_income:rocio,updated_at:new Date().toISOString()},
+   {onConflict:'month_key'}
+ );
+ if(r.error){incomeMsg.textContent=r.error.message;return}
+ incomes.toto=toto;
+ incomes.rocio=rocio;
+ renderIncome();
+ render();
+ incomeMsg.textContent='Ingresos guardados correctamente. El reparto se actualizó.';
+};
+
+['totoIncome','rocioIncome','amount'].forEach(id=>
+ document.getElementById(id).addEventListener('input',e=>formatField(e.target))
+);
+
+db.auth.getSession().then(r=>{if(r.data.session)show()});
+</script>
+</body>
+</html>
