@@ -63,21 +63,29 @@ if(!holder){
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
 if(company==='Edesur'){
-  // Edesur: usar las etiquetas reales del PDF y no las líneas de detalle.
-  // El primer TOTAL: es el importe del 1° vencimiento.
-  const totalMatch=clean.match(/\bTOTAL:\s*\$\s*([0-9]{1,3}(?:,[0-9]{3})*\.[0-9]{2})/i);
-  if(totalMatch)amount=totalMatch[1].replace(/,/g,'.').replace(/\.(?=[0-9]{2}$)/,',');
-  const firstDue=clean.match(/1[°º]?\s*Vencimiento\s*:\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i);
-  if(firstDue)due=parseDate(firstDue[1]);
-  const issueMatch=clean.match(/Capital Federal\s+([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})/i);
+  // Edesur: estructura real de la factura:
+  // TITULAR Cliente: XXXXXXXX
+  // Capital Federal DD/MM/AAAA
+  // 1° Vencimiento: DD/MM/AAAA
+  // TOTAL A PAGAR (1° vencimiento) $37,035.05
+  const headerMatch=clean.match(/^\\s*(.+?)\\s+Cliente\\s*:\\s*(\\d{6,12})\\s*$/im);
+  if(headerMatch){
+    holder=headerMatch[1].trim().replace(/\\s+/g,' ');
+    account=headerMatch[2];
+  }
+
+  const issueMatch=clean.match(/Capital Federal\\s+(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{4})/i);
   if(issueMatch)issue=parseDate(issueMatch[1]);
-  const clientMatch=clean.match(/Cliente\s*:\s*([0-9]{6,12})/i);
-  if(clientMatch)account=clientMatch[1];
-  const holderMatch=clean.match(/Liquidaci[óo]n\s+de\s+Servicios\s+P[úu]blicos\s*\(LSP\)[^\n]*\n\s*([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){2,7})\s*(?=\n|$)/i);
-  if(holderMatch)holder=holderMatch[1].trim();
-  if(!holder){
-    const topHolder=clean.match(/\b([A-ZÁÉÍÓÚÑ]+\s+[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){2,7})\s+Cliente\s*:\s*[0-9]{6,12}/i);
-    if(topHolder)holder=topHolder[1].trim();
+
+  const firstDue=clean.match(/1[°º]\\s*Vencimiento\\s*:\\s*(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{4})/i);
+  if(firstDue)due=parseDate(firstDue[1]);
+
+  const totalMatch=clean.match(/TOTAL\\s+A\\s+PAGAR\\s*\\(\\s*1[°º]\\s*vencimiento\\s*\\)\\s*\\$\\s*([0-9.,]+)/i);
+  if(totalMatch){
+    const numeric=Number(totalMatch[1].replace(/,/g,''));
+    if(Number.isFinite(numeric)){
+      amount=new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(numeric);
+    }
   }
 }else{
   let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
