@@ -50,6 +50,9 @@ h1,h2{color:#1c1c1e}h1{margin:0 0 5px;font-size:30px;letter-spacing:-.5px}h2{fon
 @media(min-width:651px){#mobileNav{display:none}}
 <style>
 .datePicker{position:relative}.dateDisplay{width:100%;min-height:50px;padding:13px 15px;text-align:left;border:1px solid #d1d1d6;border-radius:12px;background:#fff;color:#1c1c1e;font-size:16px;font-weight:600}.datePicker>input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.dateQuick{display:flex;gap:7px;margin-top:7px}.dateQuick button{flex:1;border:0;background:#eef4ff;color:#007aff;border-radius:10px;padding:8px 5px;font-weight:600;font-size:13px}.dateQuick button:active,.dateDisplay:active{transform:scale(.98)}
+<style>
+.topActions{display:flex;align-items:center;gap:7px}.refreshBtn{border:0;border-radius:10px;padding:9px 12px;background:#eef4ff;color:#007aff;font-weight:600;font-size:14px;min-height:40px}
+@media(max-width:650px){.topActions{gap:6px}.refreshBtn{padding:8px 10px;font-size:13px;min-height:40px}}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#183153">
@@ -68,7 +71,7 @@ h1,h2{color:#1c1c1e}h1{margin:0 0 5px;font-size:30px;letter-spacing:-.5px}h2{fon
 <main id="app" class="wrap hide"><div id="home"></div>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
 <div><h1>Gastos compartidos</h1><p>Reparto proporcional según sueldo</p></div>
-<div><button id="logout" class="delete">Salir</button></div>
+<div class="topActions"><button id="refreshPage" class="refreshBtn" type="button">↻ Actualizar</button><button id="logout" class="delete">Salir</button></div>
 </div>
 
 <section class="panel">
