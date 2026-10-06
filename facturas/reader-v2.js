@@ -71,21 +71,34 @@ function parseEdesur(text){
   const out={};
 
   // Edesur coloca "Cliente: XXXXXXXX" y el titular en líneas separadas.
+  // En la extracción de PDF de Edesur "Cliente:" puede quedar pegado a otros campos.
+  // Por eso no exigimos que esté al comienzo de una línea.
   const account=first(
-    t.match(/(?:^|\n)\s*Cliente\s*:\s*(\d{6,12})/i),
-    t.match(/Cliente\s*N[°º]\s*:\s*(\d{6,12})/i)
+    t.match(/Cliente\s*:\s*(\d{6,12})/i),
+    t.match(/Cliente\s*N[°º]?\s*:\s*(\d{6,12})/i),
+    t.match(/Cliente[^0-9]{0,20}(\d{6,12})/i),
+    t.match(/C\s*:\s*(\d{6,12})/i)
   );
-  if(account) out.account=candidate(account[1],.99,'Cliente: / Cliente N°','Edesur');
+  if(account) out.account=candidate(account[1],.99,'Cliente / Cliente N°','Edesur');
 
   // Titular: en este formato aparece inmediatamente después del bloque
   // "Liquidación de Servicios Públicos..." y antes del domicilio.
   const lsp=lines.findIndex(x=>/LIQUIDACI[ÓO]N\s+DE\s+SERVICIOS\s+P[ÚU]BLICOS/i.test(x));
   if(lsp>=0){
     // En los PDF de Edesur el titular suele estar en la misma línea que "Cliente:".
-    const sameLine=t.match(/([^\n]+?)\s+Cliente\s*:\s*\d{6,12}/i);
-    if(sameLine && !/^(Liquidación|N°|Cliente)/i.test(sameLine[1].trim())){
-      const name=sameLine[1].trim();
-      if(name.length>=5 && !/[0-9]/.test(name)) out.holder=candidate(name,.99,'Titular antes de Cliente:','Edesur');
+    const sameLine=t.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{4,})\s+Cliente\s*:\s*\d{6,12}/i);
+    if(sameLine){
+      const name=sameLine[1].replace(/\s+/g,' ').trim();
+      if(name.length>=5 && !/[0-9]/.test(name)) out.holder=candidate(name,.99,'Titular en bloque Cliente de Edesur','Edesur');
+    }
+    // Variante cuando PDF.js separa el nombre y "Cliente:" en elementos distintos.
+    if(!out.holder){
+      const ci=t.search(/Cliente\s*:\s*\d{6,12}/i);
+      if(ci>0){
+        const before=t.slice(Math.max(0,ci-80),ci).replace(/\s+/g,' ').trim();
+        const m=before.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{4,})$/i);
+        if(m) out.holder=candidate(m[1].trim(),.96,'Texto inmediatamente anterior a Cliente:','Edesur');
+      }
     }
     for(let i=lsp+1;i<Math.min(lines.length,lsp+6);i++){
       const x=lines[i].trim();
