@@ -189,18 +189,34 @@ function parseMetroGas(text){
     }
   }
 
-  // El titular se mantiene como candidato independiente: nunca se reemplaza
-  // por "Código", "Actividades", IVA u otra etiqueta.
-  const idx=lines.findIndex(x=>/METROGAS\s+S\.A\.?/i.test(x));
-  if(idx>=0){
-    for(let i=idx+1;i<Math.min(lines.length,idx+35);i++){
+  // Titular de MetroGAS: en PDFs reales aparece ANTES del bloque
+  // "Número de cliente", por ejemplo:
+  // "AMELIA ELENA VILLAREAL" seguido de la dirección.
+  // Lo buscamos primero por etiquetas de titular/dirección y luego
+  // por el bloque inmediatamente anterior a "Número de cliente".
+  const clientIdx=lines.findIndex(x=>/Número\s+de\s+cliente/i.test(x));
+  if(clientIdx>0 && !out.holder){
+    for(let i=Math.max(0,clientIdx-8);i<clientIdx;i++){
       const x=lines[i].replace(/\s+/g,' ').trim();
-      if(/^\d{8,12}$/.test(x) || /N[ÚU]MERO\s+DE\s+CLIENTE/i.test(x))continue;
-      if(/^(ACTIVIDADES|C[ÓO]DIGO|RESPONSABLE|INSCRIPTO|BRUT|IVA|METROGAS)\b/i.test(x))continue;
-      if(/^[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,7}$/.test(x)){
-        out.holder=candidate(x,.90,'Bloque superior de MetroGAS','MetroGAS');
+      if(!x || /MetroGAS|LIQUIDACION|RESPONSABLE|CUIT|IVA|TIPO DE CLIENTE|TARIFA|INTERLOCUTOR/i.test(x)) continue;
+      if(/^\d/.test(x) || /\d{3,}/.test(x)) continue;
+      if(/^[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,8}$/.test(x)){
+        out.holder=candidate(x,.99,'Titular antes de Número de cliente','MetroGAS');
         break;
       }
+    }
+  }
+
+  // Fallback: algunos PDFs ponen el titular en una línea cercana al
+  // encabezado y no mantienen el mismo orden visual.
+  if(!out.holder){
+    const holderLabel=first(
+      t.match(/(?:TITULAR|CLIENTE)\s*[:#-]\s*([^\n]+)/i),
+      t.match(/(?:NOMBRE\s+DEL\s+CLIENTE|NOMBRE\s+Y\s+APELLIDO)\s*[:#-]\s*([^\n]+)/i)
+    );
+    if(holderLabel){
+      const x=holderLabel[1].trim();
+      if(x && !/^\d/.test(x)) out.holder=candidate(x,.95,'Etiqueta de titular de MetroGAS','MetroGAS');
     }
   }
   return out;
