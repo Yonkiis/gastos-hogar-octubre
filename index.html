@@ -143,7 +143,7 @@ function render(){
     youCard.className='settlement-card positive';
   }
 
-  document.getElementById('expenseRows').innerHTML=variable.map(x=>`<tr><td>${dateLabel(x.expense_date)}</td><td>${esc(x.category)}${x.description?` · ${esc(x.description)}`:''}</td><td>${esc(String(x.paid_by)==='Ella'?'Rocío':String(x.paid_by)==='Yo'?'Toto':x.paid_by)}</td><td class="amount">${fmt(Number(x.amount))}</td><td><button class="delete" data-id="${esc(x.id)}">Eliminar</button></td></tr>`).join('');
+  document.getElementById('expenseRows').innerHTML=variable.map(x=>{const category=esc(x.category),detail=esc(x.description&&String(x.description).trim()&&String(x.description).trim()!==String(x.category).trim()?x.description:'');return `<tr><td>${dateLabel(x.expense_date)}</td><td><strong>${category}</strong>${detail?`<div style="margin-top:4px;color:var(--muted);font-size:13px">Detalle: ${detail}</div>`:'<div style="margin-top:4px;color:var(--muted);font-size:13px">Sin detalle</div>'}</td><td>${esc(String(x.paid_by)==='Ella'?'Rocío':String(x.paid_by)==='Yo'?'Toto':x.paid_by)}</td><td class="amount">${fmt(Number(x.amount))}</td><td><button class="delete" data-id="${esc(x.id)}">Eliminar</button></td></tr>`}).join('');
   document.getElementById('entryCount').textContent=`${variable.length} ${variable.length===1?'gasto':'gastos'}`;
   document.getElementById('empty').classList.toggle('hide',variable.length>0);
   document.getElementById('expenseTable').classList.toggle('hide',variable.length===0);
