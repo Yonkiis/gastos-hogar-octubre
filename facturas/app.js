@@ -67,7 +67,7 @@ if(company==='Edesur'){
   const totalLine=lines.find(x=>/TOTAL\s*A\s*PAGAR\s*\(\s*1[°º]?\s*vencimiento\s*\)/i.test(x))||lines.find(x=>/^TOTAL:\s*\$/i.test(x));
   if(totalLine){
     const tm=totalLine.match(/\$\s*([0-9.,]+)/);
-    if(tm)amount=tm[1].replace(/,/g,'.');
+    if(tm){const raw=tm[1].replace(/,/g,'');const dot=raw.lastIndexOf('.');amount=dot>=0?raw.slice(0,dot)+','+raw.slice(dot+1):raw;}
   }
   const firstDue=lines.find(x=>/1[°º]?\s*Vencimiento\s*:/i.test(x));
   if(firstDue)due=parseDate(firstDue);
@@ -78,8 +78,8 @@ if(company==='Edesur'){
   }
   const clientMatch=clean.match(/Cliente\s*:\s*([0-9]{6,12})/i);
   if(clientMatch)account=clientMatch[1];
-  const holderMatch=clean.match(/^\s*([A-ZÁÉÍÓÚÑ]+\s+[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,5})\s+Cliente\s*:/im);
-  if(holderMatch)holder=holderMatch[1].trim();
+  const holderIndex=lines.findIndex(x=>/LIQUIDACI[ÓO]N DE SERVICIOS P[ÚU]BLICOS\s*\(LSP\)/i.test(x));
+  if(holderIndex>=0&&lines[holderIndex+1])holder=lines[holderIndex+1].trim();
 }else{
   let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
   const vd=lines.find(x=>/VENCIMIENTO/i.test(x));if(vd)due=parseDate(vd);
