@@ -62,10 +62,30 @@ if(!holder){
 }
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
-let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
-const vd=lines.find(x=>/VENCIMIENTO/i.test(x));if(vd)due=parseDate(vd);
-const em=lines.find(x=>/EMISI[ÓO]N/i.test(x));if(em)issue=parseDate(em);
-const ac=lines.find(x=>/N[ÚU]MERO.*CLIENTE|N[ÚU]MERO.*CUENTA/i.test(x));if(ac){const mm=ac.match(/[0-9]{6,}/);if(mm)account=mm[0]}
+if(company==='Edesur'){
+  // Edesur: tomar el importe del bloque de 1° vencimiento, no el "1" del texto.
+  const totalLine=lines.find(x=>/TOTAL\s*A\s*PAGAR\s*\(\s*1[°º]?\s*vencimiento\s*\)/i.test(x))||lines.find(x=>/^TOTAL:\s*\$/i.test(x));
+  if(totalLine){
+    const tm=totalLine.match(/\$\s*([0-9.,]+)/);
+    if(tm)amount=tm[1].replace(/,/g,'.');
+  }
+  const firstDue=lines.find(x=>/1[°º]?\s*Vencimiento\s*:/i.test(x));
+  if(firstDue)due=parseDate(firstDue);
+  const issueLine=lines.find(x=>/Capital Federal\s+\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/i.test(x));
+  if(issueLine){
+    const im=issueLine.match(/Capital Federal\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i);
+    if(im)issue=parseDate(im[1]);
+  }
+  const clientMatch=clean.match(/Cliente\s*:\s*([0-9]{6,12})/i);
+  if(clientMatch)account=clientMatch[1];
+  const holderMatch=clean.match(/^\s*([A-ZÁÉÍÓÚÑ]+\s+[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,5})\s+Cliente\s*:/im);
+  if(holderMatch)holder=holderMatch[1].trim();
+}else{
+  let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
+  const vd=lines.find(x=>/VENCIMIENTO/i.test(x));if(vd)due=parseDate(vd);
+  const em=lines.find(x=>/EMISI[ÓO]N/i.test(x));if(em)issue=parseDate(em);
+  const ac=lines.find(x=>/N[ÚU]MERO.*CLIENTE|N[ÚU]MERO.*CUENTA/i.test(x));if(ac){const mm=ac.match(/[0-9]{6,}/);if(mm)account=mm[0]}
+}
 }
 return {company,service,amount,due,issue,account,holder}
 }
