@@ -8,121 +8,30 @@
 *{box-sizing:border-box}
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;color:#1c1c1e;background:#f2f2f7}
 body{margin:0;background:#f2f2f7;-webkit-text-size-adjust:100%;padding-bottom:20px}
-.wrap{max-width:900px;margin:auto;padding:24px}
-.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:0;border-radius:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.wrap{max-width:900px;margin:auto;padding:24px}.panel,.auth{background:#fff;padding:20px;margin:15px 0;border:0;border-radius:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 h1,h2{color:#1c1c1e}h1{margin:0 0 5px;font-size:30px;letter-spacing:-.5px}h2{font-size:20px;margin:0 0 16px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field label{display:block;font-weight:600;font-size:14px;margin-bottom:7px;color:#3a3a3c}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-weight:600;font-size:14px;margin-bottom:7px;color:#3a3a3c}
 .field input,.field select{width:100%;padding:13px;border:1px solid #d1d1d6;border-radius:12px;background:#fff;font-size:16px;min-height:46px;color:#1c1c1e}
-.btn{padding:12px 17px;background:#007aff;color:#fff;border:0;border-radius:12px;font-weight:600;font-size:15px;min-height:44px}
-.delete{border:0;border-radius:10px;padding:9px 13px;background:#ff3b30;color:#fff;font-weight:600}
-.expense{padding:15px;border:0;border-radius:15px;margin:10px 0;background:#f9f9fb}
-.top{display:flex;justify-content:space-between;gap:12px}.top b{font-size:18px}.detail{margin-top:7px;font-weight:600}
-.meta{margin-top:6px;color:#8e8e93;font-size:13px}.hide{display:none}
-.summary{background:#f2f7ff;border-radius:14px;padding:15px;margin-top:15px}
-.balance{background:#fff8e7;border:0;border-radius:14px;padding:15px;margin-top:12px}
-.ok{background:#eaf8ee}.line{display:flex;justify-content:space-between;margin:8px 0;gap:15px}
-#incomeForm p,#expenseForm p,#editForm p{margin-bottom:0}
-#incomeMsg,#expenseMsg,#editMsg{margin-top:10px}#total{font-size:18px}
-.datePicker{position:relative}.dateDisplay{width:100%;min-height:50px;padding:13px 15px;text-align:left;border:1px solid #d1d1d6;border-radius:12px;background:#fff;color:#1c1c1e;font-size:16px;font-weight:600}.datePicker>input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.btn{padding:12px 17px;background:#007aff;color:#fff;border:0;border-radius:12px;font-weight:600;font-size:15px;min-height:44px}.delete{border:0;border-radius:10px;padding:9px 13px;background:#ff3b30;color:#fff;font-weight:600}
+.expense{padding:15px;border:0;border-radius:15px;margin:10px 0;background:#f9f9fb}.top{display:flex;justify-content:space-between;gap:12px}.top b{font-size:18px}.detail{margin-top:7px;font-weight:600}.meta{margin-top:6px;color:#8e8e93;font-size:13px}.hide{display:none}
+.summary{background:#f2f7ff;border-radius:14px;padding:15px;margin-top:15px}.balance{background:#fff8e7;border:0;border-radius:14px;padding:15px;margin-top:12px}.line{display:flex;justify-content:space-between;margin:8px 0;gap:15px}
+#incomeForm p,#expenseForm p,#editForm p{margin-bottom:0}#incomeMsg,#expenseMsg,#editMsg{margin-top:10px}#total{font-size:18px}
+.datePicker{position:relative}.dateDisplay{width:100%;min-height:50px;padding:13px 15px;text-align:left;border:1px solid #d1d1d6;border-radius:12px;background:#fff;color:#1c1c1e;font-size:16px;font-weight:600}
+.datePicker>input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;margin:0;padding:0;border:0}
 .topActions{display:flex;align-items:center;gap:7px}.refreshBtn{border:0;border-radius:10px;padding:9px 12px;background:#eef4ff;color:#007aff;font-weight:600;font-size:14px;min-height:40px}
-@media(max-width:650px){
-body{font-size:15px;padding-bottom:78px}.wrap{padding:10px 10px 90px}.panel,.auth{padding:16px;margin:10px 0;border-radius:18px}
-h1{font-size:28px}.panel h2{font-size:19px}.grid{grid-template-columns:1fr;gap:10px}.field input,.field select{min-height:50px}.btn{width:100%;min-height:48px}
-.top{align-items:flex-start}.top b{font-size:18px}.expense{padding:14px;margin:8px 0;border-radius:15px}.expense .btn,.expense .delete{width:auto;min-height:40px;padding:9px 12px}
-.line{display:flex;flex-direction:column;gap:2px;margin:10px 0}.line b{display:block}#logout{width:auto;margin-top:0}
-#monthForm{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}#monthPicker{grid-column:1 / -1;grid-row:1;width:100%;min-height:50px}#prevMonth{grid-column:1;grid-row:2}#nextMonth{grid-column:2;grid-row:2}
-#mobileNav{position:fixed;z-index:50;left:10px;right:10px;bottom:10px;height:60px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.08);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:0 6px 25px rgba(0,0,0,.15)}
-#mobileNav a{color:#007aff;text-decoration:none;font-size:12px;font-weight:600;text-align:center;padding:7px 15px}#mobileNav span{display:block;font-size:20px;line-height:22px;margin-bottom:2px}
-.topActions{gap:6px}.refreshBtn{padding:8px 10px;font-size:13px;min-height:40px}
-}
+@media(max-width:650px){body{font-size:15px;padding-bottom:78px}.wrap{padding:10px 10px 90px}.panel,.auth{padding:16px;margin:10px 0;border-radius:18px}h1{font-size:28px}.panel h2{font-size:19px}.grid{grid-template-columns:1fr;gap:10px}.field input,.field select{min-height:50px}.btn{width:100%;min-height:48px}.top{align-items:flex-start}.top b{font-size:18px}.expense{padding:14px;margin:8px 0;border-radius:15px}.expense .btn,.expense .delete{width:auto;min-height:40px;padding:9px 12px}.line{display:flex;flex-direction:column;gap:2px;margin:10px 0}.line b{display:block}#logout{width:auto;margin-top:0}#monthForm{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}#monthPicker{grid-column:1 / -1;grid-row:1;width:100%;min-height:50px}#prevMonth{grid-column:1;grid-row:2}#nextMonth{grid-column:2;grid-row:2}#mobileNav{position:fixed;z-index:50;left:10px;right:10px;bottom:10px;height:60px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.08);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:0 6px 25px rgba(0,0,0,.15)}#mobileNav a{color:#007aff;text-decoration:none;font-size:12px;font-weight:600;text-align:center;padding:7px 15px}#mobileNav span{display:block;font-size:20px;line-height:22px;margin-bottom:2px}.topActions{gap:6px}.refreshBtn{padding:8px 10px;font-size:13px;min-height:40px}}
 @media(min-width:651px){#mobileNav{display:none}}
 </style>
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#183153">
-</head>
-<body>
-<section id="login" class="auth">
-<h1>Gastos compartidos</h1>
-<form id="loginForm">
-<div class="field"><label>Correo</label><input id="email" type="email" required></div>
-<div class="field"><label>Contraseña</label><input id="password" type="password" required></div>
-<button class="btn">Iniciar sesión</button>
-</form>
-<div id="loginMsg"></div>
-</section>
-
+<link rel="manifest" href="./manifest.json"><meta name="theme-color" content="#183153">
+</head><body>
+<section id="login" class="auth"><h1>Gastos compartidos</h1><form id="loginForm"><div class="field"><label>Correo</label><input id="email" type="email" required></div><div class="field"><label>Contraseña</label><input id="password" type="password" required></div><button class="btn">Iniciar sesión</button></form><div id="loginMsg"></div></section>
 <main id="app" class="wrap hide"><div id="home"></div>
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-<div><h1>Gastos compartidos</h1><p>Reparto proporcional según sueldo</p></div>
-<div class="topActions"><button id="refreshPage" class="refreshBtn" type="button">↻ Actualizar</button><button id="logout" class="delete">Salir</button></div>
-</div>
-
-<section class="panel">
-<h2>Ingresos del hogar · <span id="monthTitle"></span></h2>
-<form id="incomeForm">
-<div class="grid">
-<div class="field"><label>Sueldo Toto</label><input id="totoIncome" inputmode="numeric" placeholder="$1.000.000"></div>
-<div class="field"><label>Sueldo Rocío</label><input id="rocioIncome" inputmode="numeric" placeholder="$1.000.000"></div>
-</div>
-<p><button class="btn">Guardar ingresos</button></p>
-</form>
-<div id="incomeMsg"></div>
-<div id="incomeSummary" class="summary"></div><div id="balance" class="balance"></div>
-</section>
-
-<section class="panel" id="addExpense">
-<h2 id="expenseTitle">Agregar gasto</h2>
-<form id="expenseForm">
-<div class="grid">
-<div class="field"><label>Fecha</label><div class="datePicker"><button type="button" id="dateDisplay" class="dateDisplay">📅 Elegir fecha</button><input id="date" type="date" required></div></div>
-<div class="field"><label>Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div>
-<div class="field"><label>Importe</label><input id="amount" inputmode="numeric" placeholder="$1.000.000" required></div>
-<div class="field"><label>Detalle</label><input id="detail" placeholder="Ej.: Compramos carne"></div>
-<div class="field"><label>Pagó</label><select id="paidBy"><option>Rocío</option><option>Toto</option></select></div>
-</div>
-<p><button class="btn">Agregar gasto</button></p>
-</form>
-<div id="expenseMsg"></div>
-</section>
-
-<section id="editBox" class="panel hide">
-<h2>Editar gasto</h2>
-<form id="editForm">
-<div class="grid">
-<div class="field"><label>Fecha</label><div class="datePicker"><button type="button" id="editDateDisplay" class="dateDisplay">📅 Elegir fecha</button><input id="editDate" type="date" required></div></div>
-<div class="field"><label>Categoría</label><select id="editCategory"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div>
-<div class="field"><label>Importe</label><input id="editAmount" inputmode="numeric" required></div>
-<div class="field"><label>Detalle</label><input id="editDetail"></div>
-<div class="field"><label>Pagó</label><select id="editPaidBy"><option>Rocío</option><option>Toto</option></select></div>
-</div>
-<p><button class="btn">Guardar cambios</button> <button type="button" id="cancelEdit" class="delete">Cancelar</button></p>
-</form>
-<div id="editMsg"></div>
-</section>
-<section class="panel" id="history">
-<h2 id="historyTitle">Gastos cargados <span id="count"></span></h2>
-<div id="list"></div>
-<hr>
-<b>Total de gastos del mes: <span id="total">$0</span></b>
-</section>
-
-<section class="panel" id="month">
-<h2>Mes</h2>
-<form id="monthForm" style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap">
-<button type="button" id="prevMonth" class="btn">← Anterior</button>
-<input id="monthPicker" type="month" required>
-<button type="button" id="nextMonth" class="btn">Siguiente →</button>
-</form>
-</section>
-</main>
-<nav id="mobileNav" aria-label="Navegación">
-<a href="#home"><span>⌂</span>Resumen</a>
-<a href="#addExpense"><span>＋</span>Gasto</a>
-<a href="#history"><span>☷</span>Movimientos</a>
-<a href="#month"><span>◷</span>Mes</a>
-</nav>
-<script src="./supabase.js?v=7"></script>
-<script src="./app.js?v=6"></script>
-</body>
-</html>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h1>Gastos compartidos</h1><p>Reparto proporcional según sueldo</p></div><div class="topActions"><button id="refreshPage" class="refreshBtn" type="button">↻ Actualizar</button><button id="logout" class="delete">Salir</button></div></div>
+<section class="panel"><h2>Ingresos del hogar · <span id="monthTitle"></span></h2><form id="incomeForm"><div class="grid"><div class="field"><label>Sueldo Toto</label><input id="totoIncome" inputmode="numeric" placeholder="$1.000.000"></div><div class="field"><label>Sueldo Rocío</label><input id="rocioIncome" inputmode="numeric" placeholder="$1.000.000"></div></div><p><button class="btn">Guardar ingresos</button></p></form><div id="incomeMsg"></div><div id="incomeSummary" class="summary"></div><div id="balance" class="balance"></div></section>
+<section class="panel" id="addExpense"><h2 id="expenseTitle">Agregar gasto</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Fecha</label><div class="datePicker"><button type="button" id="dateDisplay" class="dateDisplay">📅 Elegir fecha</button><input id="date" type="date" required></div></div><div class="field"><label>Categoría</label><select id="category"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div><div class="field"><label>Importe</label><input id="amount" inputmode="numeric" placeholder="$1.000.000" required></div><div class="field"><label>Detalle</label><input id="detail" placeholder="Ej.: Compramos carne"></div><div class="field"><label>Pagó</label><select id="paidBy"><option>Rocío</option><option>Toto</option></select></div></div><p><button class="btn">Agregar gasto</button></p></form><div id="expenseMsg"></div></section>
+<section id="editBox" class="panel hide"><h2>Editar gasto</h2><form id="editForm"><div class="grid"><div class="field"><label>Fecha</label><div class="datePicker"><button type="button" id="editDateDisplay" class="dateDisplay">📅 Elegir fecha</button><input id="editDate" type="date" required></div></div><div class="field"><label>Categoría</label><select id="editCategory"><option>Supermercado</option><option>Limpieza</option><option>Gastos extra</option><option>Otro</option></select></div><div class="field"><label>Importe</label><input id="editAmount" inputmode="numeric" required></div><div class="field"><label>Detalle</label><input id="editDetail"></div><div class="field"><label>Pagó</label><select id="editPaidBy"><option>Rocío</option><option>Toto</option></select></div></div><p><button class="btn">Guardar cambios</button> <button type="button" id="cancelEdit" class="delete">Cancelar</button></p></form><div id="editMsg"></div></section>
+<section class="panel" id="history"><h2 id="historyTitle">Gastos cargados <span id="count"></span></h2><div id="list"></div><hr><b>Total de gastos del mes: <span id="total">$0</span></b></section>
+<section class="panel" id="month"><h2>Mes</h2><form id="monthForm" style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><button type="button" id="prevMonth" class="btn">← Anterior</button><input id="monthPicker" type="month" required><button type="button" id="nextMonth" class="btn">Siguiente →</button></form></section>
+</main><nav id="mobileNav" aria-label="Navegación"><a href="#home"><span>⌂</span>Resumen</a><a href="#addExpense"><span>＋</span>Gasto</a><a href="#history"><span>☷</span>Movimientos</a><a href="#month"><span>◷</span>Mes</a></nav>
+<script src="./supabase.js?v=7"></script><script src="./app.js?v=7"></script>
+</body></html>
