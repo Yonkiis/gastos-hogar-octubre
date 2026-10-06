@@ -56,7 +56,7 @@ function moneyAR(s){
 
 function detectCompany(text){
   const u=normalize(text).toUpperCase();
-  if(/\bEDESUR\b/.test(u) || /DISTRIBUIDORA DE ENERG[IÍ]A SUR/.test(u)) return {company:'Edesur',service:'Luz',confidence:.99};
+  if(/\bEDESUR\b/.test(u) || /DISTRIBUIDORA DE ENERG[IÍ]A SUR/.test(u) || /CUIT\s*:?\s*30-65511651-2/.test(u) || (/LIQUIDACI[ÓO]N\s+DE\s+SERVICIOS\s+P[ÚU]BLICOS/.test(u) && /N[°º]\s*DE\s*MEDIDOR/.test(u) && /C[ÓO]DIGO\s+CESP/.test(u))) return {company:'Edesur',service:'Luz',confidence:.99};
   if(/\bMETROGAS\b/.test(u)) return {company:'MetroGAS',service:'Gas',confidence:.99};
   if(/\bAYSA\b|AGUA Y SANEAMIENTOS ARGENTINOS/.test(u)) return {company:'AySA',service:'Agua',confidence:.98};
   if(/\bARBA\b/.test(u)) return {company:'ARBA',service:'ARBA departamento',confidence:.98};
@@ -70,27 +70,59 @@ function parseEdesur(text){
   const lines=linesOf(t);
   const out={};
 
-  const h=first(
-    t.match(/^\s*(.+?)\s+Cliente\s*:\s*(\d{6,12})\s*$/im),
-    t.match(/(?:^|\n)\s*([^\n]+?)\s+Cliente\s*:\s*(\d{6,12})/i)
+  // Edesur coloca "Cliente: XXXXXXXX" y el titular en líneas separadas.
+  const account=first(
+    t.match(/(?:^|\\n)\\s*Cliente\\s*:\\s*(\\d{6,12})/i),
+    t.match(/Cliente\\s*N[°º]\\s*:\\s*(\\d{6,12})/i)
   );
-  if(h){
-    out.holder=candidate(h[1].replace(/\s+/g,' '),.99,'Línea "Cliente:"','Edesur');
-    out.account=candidate(h[2],.99,'Línea "Cliente:"','Edesur');
+  if(account) out.account=candidate(account[1],.99,'Cliente: / Cliente N°','Edesur');
+
+  // Titular: en este formato aparece inmediatamente después del bloque
+  // "Liquidación de Servicios Públicos..." y antes del domicilio.
+  const lsp=lines.findIndex(x=>/LIQUIDACI[ÓO]N\\s+DE\\s+SERVICIOS\\s+P[ÚU]BLICOS/i.test(x));
+  if(lsp>=0){
+    for(let i=lsp+1;i<Math.min(lines.length,lsp+6);i++){
+      const x=lines[i].trim();
+      if(!x || /^N[°º]\\s*DE\\s*MEDIDOR/i.test(x)) continue;
+      if(/^\\d{6,12}$/.test(x) || /Cliente\\s*:/i.test(x)) continue;
+      if(/^(ESPORA|LOMAS DE ZAMORA|TEMPERLEY|SE:|ALIMENTADOR:|CT:|PLAN:|SUC:|RAD:|REC:)/i.test(x)) continue;
+      // Nombre del titular: texto sin etiqueta y sin números.
+      if(!/[0-9]/.test(x) && x.length>=5){
+        out.holder=candidate(x.replace(/\\s+/g,' ').trim(),.99,'Bloque titular de Edesur','Edesur');
+        break;
+      }
+    }
   }
 
-  const issue=t.match(/Capital Federal\s+(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  // Fallback: buscar una línea de nombre justo antes del domicilio.
+  if(!out.holder){
+    const ai=lines.findIndex(x=>/^N[°º]\\s*DE\\s*MEDIDOR/i.test(x));
+    if(ai>=0){
+      for(let i=ai+1;i<Math.min(lines.length,ai+4);i++){
+        const x=lines[i].trim();
+        if(x && !/[0-9]/.test(x) && !/^(ESPORA|LOMAS DE ZAMORA|TEMPERLEY)/i.test(x)){
+          out.holder=candidate(x,.95,'Línea posterior al medidor','Edesur');
+          break;
+        }
+      }
+    }
+  }
+
+  const issue=first(
+    t.match(/Capital Federal\\s+(\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{4})/i),
+    t.match(/Capital Federal\\s+(\\d{1,2}\\s*[\\/-]\\s*\\d{1,2}\\s*[\\/-]\\s*\\d{4})/i)
+  );
   if(issue) out.issue=candidate(dateISO(issue[1]),.98,'Capital Federal + fecha','Edesur');
 
   const due=first(
-    t.match(/1\s*[°ºo]\s*Vencimiento\s*:\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i),
-    t.match(/Total a pagar hasta\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i)
+    t.match(/1\\s*[°ºo]\\s*Vencimiento\\s*:\\s*(\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{4})/i),
+    t.match(/Total a pagar hasta\\s*(\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{4})/i)
   );
   if(due) out.due=candidate(dateISO(due[1]),.99,'Primer vencimiento','Edesur');
 
   const amount=first(
-    t.match(/TOTAL\s+A\s+PAGAR\s*\(\s*1\s*[°ºo]\s*vencimiento\s*\)\s*\$\s*([0-9.,]+)/i),
-    t.match(/Total\s+a\s+pagar\s+hasta\s*\d{1,2}[\/-]\d{1,2}[\/-]\d{4}\s*\$\s*([0-9.,]+)/i)
+    t.match(/TOTAL\\s+A\\s+PAGAR\\s*\\(\\s*1\\s*[°ºo]\\s*vencimiento\\s*\\)\\s*\\$\\s*([0-9.,]+)/i),
+    t.match(/Total a pagar hasta\\s*\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{4}\\s*\\$\\s*([0-9.,]+)/i)
   );
   if(amount) out.amount=candidate(moneyAR(amount[1]),.99,'TOTAL A PAGAR (1° vencimiento)','Edesur');
 
