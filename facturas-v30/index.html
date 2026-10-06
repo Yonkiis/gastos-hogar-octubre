@@ -1,1 +1,50 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Facturas del mes</title><link rel="stylesheet" href="styles.css?v=30"></head><body><div id="version">APLICACIÓN FACTURAS · V30</div><script type="module" src="app.js?v=30"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="theme-color" content="#111827"><title>Facturas del mes</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+<div id="appVersion" style="position:fixed;top:8px;right:10px;z-index:9999;background:#111827;color:#fff;padding:5px 9px;border-radius:8px;font:700 11px Arial">APLICACIÓN FACTURAS · V30</div>
+<header><div><h1>Facturas del mes</h1><p>Control simple de servicios, vencimientos y pagos</p></div><button id="uploadTop">+ Cargar factura</button></header>
+<main>
+<section class="toolbar"><button id="prevMonth">‹</button><div><b id="monthTitle"></b><input id="monthPicker" type="month"></div><button id="nextMonth">›</button></section>
+<section class="cards">
+<div><span>Total</span><strong id="totalAmount">$0</strong></div><div><span>Pagadas</span><strong id="paidAmount">$0</strong></div><div><span>Pendientes</span><strong id="pendingAmount">$0</strong></div><div><span>Próximos vencimientos</span><strong id="upcomingCount">0</strong></div>
+</section>
+<section class="panel"><div class="panelHead"><h2>Facturas</h2><button id="uploadBtn">+ Cargar factura</button></div><div id="billList" class="list"></div></section>
+</main>
+<div id="modal" class="modal hidden"><div class="modalBox"><div class="modalHead"><h2 id="modalTitle">Nueva factura</h2><button id="closeModal">×</button></div>
+<div id="dropzone" class="dropzone"><b>Subí la factura</b><span>PDF o imagen</span><input id="fileInput" type="file" accept=".pdf,image/*"></div>
+<div id="reading" class="reading hidden">⏳ Analizando factura...</div>
+<div id="analysisPanel" class="analysisPanel hidden">
+  <div class="analysisTitle"><div><b>Resultado del análisis</b><small>Revisá estos datos antes de confirmar.</small></div><span class="analysisBadge">Revisión manual</span></div>
+  <div id="analysisSummary" class="analysisSummary"></div>
+</div>
+<div class="formgrid">
+<label>Servicio<select id="service"><option>Luz</option><option>Gas</option><option>Agua</option><option>Internet</option><option>Seguro de auto</option><option>Alquiler</option><option>ARBA departamento</option><option>ARBA cochera</option><option>Municipal</option><option>Municipal cochera</option><option>Expensas</option><option>Otro</option></select></label>
+<label>Empresa<input id="company"></label><label>Importe<input id="amount" inputmode="decimal" placeholder="$0"></label>
+<label>Vencimiento<input id="dueDate" type="date"></label><label>Emisión<input id="issueDate" type="date"></label><label>N° cliente/cuenta<input id="accountNumber"></label>
+<label class="wide">Titular<input id="holderName"></label><label>Estado<select id="status"><option>Pendiente</option><option>Pagada</option></select></label>
+</div>
+<div id="fileInfo" class="fileInfo"></div><label style="display:block;margin-top:12px;font-size:13px;font-weight:700">Comprobante de pago (opcional)<input id="receiptInput" type="file" accept=".pdf,image/*" style="display:block;margin-top:6px"></label><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
+</div></div>
+<div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Factura</h2><button id="closeView">×</button></div><iframe id="viewer" title="Factura"></iframe></div></div>
+<script>
+/* Fallback de apertura: permite abrir el cargador aunque el módulo principal tarde en cargar. */
+document.addEventListener('DOMContentLoaded',()=>{
+  const modal=document.getElementById('modal');
+  const open=()=>{
+    if(modal) modal.classList.remove('hidden');
+  };
+  document.getElementById('uploadTop')?.addEventListener('click',open);
+  document.getElementById('uploadBtn')?.addEventListener('click',open);
+});
+</script>
+<script type="module" src="app.js?v=30"></script>
+</body></html>
