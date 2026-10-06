@@ -26,7 +26,7 @@
 <label>Vencimiento<input id="dueDate" type="date"></label><label>Emisión<input id="issueDate" type="date"></label><label>N° cliente/cuenta<input id="accountNumber"></label>
 <label class="wide">Titular<input id="holderName"></label><label>Estado<select id="status"><option>Pendiente</option><option>Pagada</option></select></label>
 </div>
-<div id="fileInfo" class="fileInfo"></div><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
+<div id="fileInfo" class="fileInfo"></div><label style="display:block;margin-top:12px;font-size:13px;font-weight:700">Comprobante de pago (opcional)<input id="receiptInput" type="file" accept=".pdf,image/*" style="display:block;margin-top:6px"></label><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Factura</h2><button id="closeView">×</button></div><iframe id="viewer" title="Factura"></iframe></div></div>
 <script type="module" src="app.js?v=1"></script>
