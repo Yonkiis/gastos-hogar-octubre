@@ -70,12 +70,52 @@ function renderAnalysis(result){
   panel.classList.remove('hidden');
 }
 
+async function readViaZerodoc(file){
+  const form=new FormData();
+  form.append('file',file,file.name);
+  const r=await fetch(SUPABASE_URL+'/functions/v1/zerodoc-extract',{
+    method:'POST',
+    headers:{apikey:SUPABASE_KEY},
+    body:form
+  });
+  if(!r.ok) throw new Error('Zerodoc: '+(await r.text()));
+  const z=await r.json();
+  if(z.status && z.status!=='ok') throw new Error('Zerodoc no pudo procesar la factura.');
+  const f=z.fields||{};
+  const refs=Array.isArray(f.reference_numbers?.value)?f.reference_numbers.value:[];
+  const account=f.account_number?.value||refs[0]||'';
+  const company=f.supplier?.value||'';
+  const service=/edesur|distribuidora de energia sur/i.test(company)?'Luz':
+    /metrogas/i.test(company)?'Gas':
+    /aysa|agua y saneamientos/i.test(company)?'Agua':'';
+  return {file,text:z.text||'',source:'zerodoc',pages:z.document?.page_count||1,
+    fields:{
+      company:company?{value:company,confidence:f.supplier?.confidence||0}:null,
+      service:service?{value:service,confidence:.95}:null,
+      holder:f.customer_name?.value?{value:f.customer_name.value,confidence:f.customer_name.confidence||0}:null,
+      account:account?{value:String(account),confidence:f.account_number?.confidence||f.reference_numbers?.confidence||0}:null,
+      amount:f.total_amount?.value!=null?{value:Number(f.total_amount.value),confidence:f.total_amount.confidence||0}:null,
+      issue:f.invoice_date?.value?{value:f.invoice_date.value,confidence:f.invoice_date.confidence||0}:null,
+      due:f.due_date?.value?{value:f.due_date.value,confidence:f.due_date.confidence||0}:null
+    },
+    validation:{ok:!!(f.supplier?.value&&f.total_amount?.value&&f.due_date?.value),
+      warnings:z.extraction_warnings||[]}
+  };
+}
+
 async function readFile(file){
   $('reading').classList.remove('hidden');
   $('dropzone').classList.add('hidden');
   $('reading').textContent='⏳ Analizando documento...';
   try{
-    const result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
+    let result;
+    try{
+      $('reading').textContent='⏳ Enviando factura al lector inteligente...';
+      result=await readViaZerodoc(file);
+    }catch(zerodocError){
+      console.warn('Zerodoc no disponible; usando lector local:',zerodocError);
+      result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
+    }
     const f=result.fields||{};
     if(f.company?.value)$('company').value=f.company.value;
     if(f.service?.value)$('service').value=f.service.value;
@@ -86,7 +126,7 @@ async function readFile(file){
     if(f.holder?.value)$('holderName').value=f.holder.value;
     invoiceFile=file;
     renderAnalysis(result);
-    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source==='ocr'?'OCR':'PDF con texto');
+    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source==='zerodoc'?'Zerodoc':'lector local');
     if(result.validation?.ok){
       $('reading').textContent='✓ Lectura completada. Revisá los datos y confirmá antes de guardar.';
     }else{
