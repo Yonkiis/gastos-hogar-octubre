@@ -1,0 +1,14 @@
+name: Probar lector de facturas
+on:
+  push:
+    paths:
+      - 'facturas/reader-v2.js'
+      - 'facturas/reader-tests.js'
+  workflow_dispatch:
+jobs:
+  test-reader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar 1000 casos sintéticos
+        run: node --experimental-default-type=module facturas/reader-tests.js
