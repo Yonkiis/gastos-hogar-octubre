@@ -187,10 +187,10 @@ async function loadBills(){
       <div><small>Vence</small><b>${dateAR(b.due_date)}</b></div>
       <div><span class="status ${b.status==='Pagada'?'paid':''}">${esc(b.status)}</span></div>
       <div class="billActions">
-        <button onclick="window.editBill('${b.id}')">Editar</button>
-        <button onclick="window.togglePaid('${b.id}','${b.status}')">${b.status==='Pagada'?'Pendiente':'Pagar'}</button>
-        ${b.invoice_file_path?'<button onclick="window.viewFile(\\''+b.invoice_file_path+'\\')">PDF</button>':''}
-        ${b.receipt_file_path?'<button onclick="window.viewFile(\\''+b.receipt_file_path+'\\')">Comprobante</button>':''}
+        <button data-action="edit" data-id="${b.id}">Editar</button>
+        <button data-action="toggle" data-id="${b.id}" data-status="${b.status}">${b.status==='Pagada'?'Pendiente':'Pagar'}</button>
+        ${b.invoice_file_path?'<button data-action="file" data-path="'+encodeURIComponent(b.invoice_file_path)+'">PDF</button>':''}
+        ${b.receipt_file_path?'<button data-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':''}
       </div>
     </article>`).join('');
 }
