@@ -127,6 +127,27 @@ async function readFile(file){
       console.warn('Zerodoc no disponible; usando lector local:',zerodocError);
       result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
     }
+    // Zerodoc puede identificar la empresa pero dejar campos vacíos en facturas argentinas.
+    // En ese caso completamos únicamente los campos faltantes con el lector local.
+    if(result.source==='zerodoc' && result.text){
+      const missing=['holder','account','amount','issue','due'];
+      const hasMissing=missing.some(k=>!result.fields?.[k]?.value);
+      if(hasMissing){
+        try{
+          $('reading').textContent='⏳ Completando datos argentinos...';
+          const local=await readInvoiceFile(file,()=>{});
+          for(const key of missing){
+            if(!result.fields?.[key]?.value && local.fields?.[key]?.value){
+              result.fields[key]=local.fields[key];
+            }
+          }
+          result.validation=local.validation;
+          result.source='zerodoc + lector local';
+        }catch(e){
+          console.warn('No se pudo completar con lector local:',e);
+        }
+      }
+    }
     const f=result.fields||{};
     if(f.company?.value)$('company').value=f.company.value;
     if(f.service?.value)$('service').value=f.service.value;
