@@ -242,7 +242,7 @@ function parseGeneric(text){
   const t=normalize(text), lines=linesOf(t), out={};
   const total=first(
     t.match(/TOTAL\s+A\s+PAGAR[^\d$]{0,40}\$?\s*([0-9.,]+)/i),
-    t.match(/TOTAL[^\d$]{0,30}\$\s*([0-9.,]+)/i)
+    t.match(/TOTAL[^\d$]{0,30}\$?\s*([0-9.,]+)/i)
   );
   if(total)out.amount=candidate(moneyAR(total[1]),.55,'Etiqueta TOTAL','generic');
 
