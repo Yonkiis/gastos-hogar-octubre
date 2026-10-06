@@ -72,7 +72,7 @@ async function loadIncomes(){
   // No dependemos de created_at para ordenar: así los gastos existentes
   // siguen apareciendo aunque esa columna no exista o tenga otro nombre.
   const {data,error}=await client
-    .from('expenses')
+    .from('household_expenses')
     .select('*')
     .gte('expense_date','2026-10-01')
     .lte('expense_date','2026-10-31')
@@ -181,7 +181,7 @@ showMessage('appStatus','Gasto guardado. Actualizando la lista…');
 await loadExpenses();
 showMessage('appStatus','Gasto agregado correctamente.');
 });
-document.getElementById('expenseRows').addEventListener('click',async e=>{const id=e.target.dataset.id;if(!id||!confirm('¿Eliminar este gasto?'))return;const {error}=await client.from('expenses').delete().eq('id',id);if(error){showMessage('appStatus','No se pudo eliminar el gasto.',true);return}await loadExpenses()});
+document.getElementById('expenseRows').addEventListener('click',async e=>{const id=e.target.dataset.id;if(!id||!confirm('¿Eliminar este gasto?'))return;const {error}=await client.from('household_expenses').delete().eq('id',id);if(error){showMessage('appStatus','No se pudo eliminar el gasto.',true);return}await loadExpenses()});
 document.getElementById('date').value='2026-10-01';
 
 const recoveryBox=document.getElementById('recoveryBox');
