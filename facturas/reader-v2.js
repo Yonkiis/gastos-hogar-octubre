@@ -125,6 +125,10 @@ function parseEdesur(text){
     t.match(/Total a pagar hasta\\s*(\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{4})/i)
   );
   if(due) out.due=candidate(dateISO(due[1]),.99,'Primer vencimiento','Edesur');
+  if(!out.due){
+    const d2=t.match(/1\s*[°ºo]?\s*Vencimiento\s*:\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+    if(d2) out.due=candidate(dateISO(d2[1]),.99,'Primer vencimiento','Edesur');
+  }
 
   const amount=first(
     t.match(/TOTAL\\s+A\\s+PAGAR\\s*\\(\\s*1\\s*[°ºo]\\s*vencimiento\\s*\\)\\s*\\$\\s*([0-9.,]+)/i),
