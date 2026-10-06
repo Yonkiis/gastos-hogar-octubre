@@ -1,8 +1,8 @@
 import { readInvoiceFile } from './reader-v2.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const SUPABASE_URL='https://xnexfqbcxvrloirhrteo.supabase.co';
-const SUPABASE_KEY='sb_publishable_S50gnzXMiYfh0O3IyqM6DQ_Kjqvdhlp';
+const SUPABASE_URL='https://vbhvitwbcbymfafnfmdw.supabase.co';
+const SUPABASE_KEY='sb_publishable_TOeRbvLnMA50JjqpO4tUNQ_s7rAvLmM';
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 
