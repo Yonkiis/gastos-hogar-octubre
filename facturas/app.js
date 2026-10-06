@@ -1,4 +1,4 @@
-import { readInvoiceFile } from './reader-v2.js?v=30';
+import { readInvoiceFile } from './reader-v2.js?v=32';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 const SUPABASE_URL='https://vbhvitwbcbymfafnfmdw.supabase.co';
@@ -119,10 +119,37 @@ async function readFile(file){
   $('dropzone').classList.add('hidden');
   $('reading').textContent='⏳ Enviando factura a Zerodoc...';
   try{
-    // V31: Zerodoc es ahora el lector PRINCIPAL. El lector local no participa
-    // en la decisión de los datos para evitar resultados incorrectos.
+    // V32: Zerodoc sigue siendo el lector PRINCIPAL.
+    // Si Zerodoc no devuelve campos estructurados (especialmente en facturas
+    // argentinas), usamos su texto OCR + el lector local SOLO para completar
+    // los campos que hayan quedado vacíos.
     const result=await readViaZerodoc(file);
-    const f=result.fields||{};
+    let f=result.fields||{};
+
+    const completeBefore=!!(
+      f.company?.value &&
+      f.amount?.value &&
+      f.due?.value &&
+      f.issue?.value &&
+      f.account?.value &&
+      f.holder?.value
+    );
+
+    if(!completeBefore){
+      try{
+        const local=await readInvoiceFile(file);
+        const lf=local?.fields||{};
+        for(const key of ['company','service','holder','account','amount','issue','due']){
+          if(!f[key]?.value && lf[key]?.value){
+            f[key]={value:lf[key].value,confidence:lf[key].confidence||0.75};
+          }
+        }
+        result.fields=f;
+        result.source='zerodoc+fallback';
+      }catch(localError){
+        console.warn('Fallback local no disponible:',localError);
+      }
+    }
 
     if(f.company?.value)$('company').value=f.company.value;
     if(f.service?.value)$('service').value=f.service.value;
@@ -134,7 +161,7 @@ async function readFile(file){
 
     invoiceFile=file;
     renderAnalysis(result);
-    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · Zerodoc';
+    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source==='zerodoc+fallback'?'Zerodoc + respaldo':'Zerodoc');
 
     const complete=!!(
       f.company?.value &&
@@ -146,8 +173,8 @@ async function readFile(file){
     );
 
     $('reading').textContent=complete
-      ? '✓ Zerodoc terminó el análisis. Revisá los datos antes de guardar.'
-      : '⚠ Zerodoc devolvió una lectura parcial. Revisá los campos antes de guardar.';
+      ? '✓ Lectura terminada. Revisá los datos antes de guardar.'
+      : '⚠ Lectura parcial. Revisá los campos antes de guardar.';
   }catch(e){
     console.error('Error Zerodoc:',e);
     invoiceFile=file;
