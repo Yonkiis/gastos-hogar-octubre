@@ -54,14 +54,14 @@ function dateLabel(d){const [y,m,day]=d.split('-');return `${day}/${m}/${y}`}
 const MONTH_KEY='2026-10';
 async function loadIncomes(){
   if(!currentSession)return;
-  const {data,error}=await client.from('income_settings').select('*').eq('id',1).maybeSingle();
+  const {data,error}=await client.from('household_incomes').select('*').eq('month_key',MONTH_KEY).maybeSingle();
   if(error){
     console.error('income_settings select error:',error);
     const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
     showMessage('incomeStatus','ERROR DE SUPABASE AL CARGAR SUELDOS: '+detalle,true);
     return;
   }
-  incomes={you:Number(data?.your_income)||0,her:Number(data?.her_income)||0};
+  incomes={you:Number(data?.toto_income)||0,her:Number(data?.rocio_income)||0};
   document.getElementById('yourIncome').value=incomes.you?fmtInput(incomes.you):'';
   document.getElementById('herIncome').value=incomes.her?fmtInput(incomes.her):'';
   render();
@@ -148,12 +148,12 @@ function render(){
   document.getElementById('empty').classList.toggle('hide',variable.length>0);
   document.getElementById('expenseTable').classList.toggle('hide',variable.length===0);
 }
-async function enterApp(session){currentSession=session;authPanel.classList.add('hide');app.classList.remove('hide');await loadIncomes();await loadExpenses();if(liveChannel)await client.removeChannel(liveChannel);liveChannel=client.channel('shared-expenses').on('postgres_changes',{event:'*',schema:'public',table:'expenses'},()=>loadExpenses()).subscribe()}
+async function enterApp(session){currentSession=session;authPanel.classList.add('hide');app.classList.remove('hide');await loadIncomes();await loadExpenses();if(liveChannel)await client.removeChannel(liveChannel);liveChannel=client.channel('shared-expenses').on('postgres_changes',{event:'*',schema:'public',table:'household_expenses'},()=>loadExpenses()).subscribe()}
 async function leaveApp(){currentSession=null;expenses=[];if(liveChannel){await client.removeChannel(liveChannel);liveChannel=null}app.classList.add('hide');authPanel.classList.remove('hide')}
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();showMessage('authStatus','Ingresando…');const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;const {data,error}=await client.auth.signInWithPassword({email,password});if(error){showMessage('authStatus','No pudimos iniciar sesión. Revisá el correo y la contraseña.',true);return}showMessage('authStatus','');if(data.session)await enterApp(data.session)});
 document.getElementById('signup').addEventListener('click',async()=>{const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||password.length<8){showMessage('authStatus','Ingresá un correo y una contraseña de al menos 8 caracteres.',true);return}showMessage('authStatus','Creando cuenta…');const emailRedirectTo=window.location.origin+window.location.pathname;const {data,error}=await client.auth.signUp({email,password},{emailRedirectTo});if(error){showMessage('authStatus','No se pudo crear la cuenta. Probá iniciar sesión o revisá la configuración del correo.',true);return}if(data.session){showMessage('authStatus','Cuenta creada.');await enterApp(data.session)}else showMessage('authStatus','Cuenta creada. Revisá tu correo para confirmarla y después iniciá sesión.')});
 document.getElementById('signout').addEventListener('click',async()=>{await client.auth.signOut();await leaveApp()});
-document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('income_settings').upsert({id:1,your_income:your,her_income:her,updated_at:new Date().toISOString()},{onConflict:'id'});if(error){
+document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('household_incomes').upsert({month_key:MONTH_KEY,toto_income:your,rocio_income:her,updated_at:new Date().toISOString()},{onConflict:'month_key'});if(error){
   console.error('income_settings upsert error:', error);
   const detalle = [error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
   showMessage('incomeStatus','ERROR DE SUPABASE: '+detalle,true);
@@ -168,7 +168,7 @@ showMessage('incomeStatus','Sueldos guardados. El reparto y el saldo se recalcul
     if(digits) el.value=new Intl.NumberFormat('es-AR').format(Number(digits));
   });
   el.addEventListener('blur',e=>formatMoneyInput(e.target));
-});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {error}=await client.from('expenses').insert(row);
+});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {error}=await client.from('household_expenses').insert(row);
 if(error){
   console.error('expenses insert error:', error);
   const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
