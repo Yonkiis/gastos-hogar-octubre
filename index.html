@@ -86,8 +86,23 @@ async function loadIncomes(){
   }
 
   expenses=Array.isArray(data)?data:[];
+  const detailBox=document.getElementById('expenseDetails');
+  if(detailBox){
+    detailBox.innerHTML='';
+    expenses.filter(x=>x.is_fixed!==true).forEach(x=>{
+      const card=document.createElement('div');
+      card.style.cssText='padding:14px;border:2px solid #d5deea;border-radius:10px;background:#fff;margin-bottom:8px';
+      const title=document.createElement('div');
+      title.style.cssText='font-weight:700;font-size:15px;color:#183153';
+      title.textContent=String(x.category||'Gasto');
+      const detail=document.createElement('div');
+      detail.style.cssText='margin-top:6px;font-size:14px;color:#202b3c';
+      detail.textContent='Detalle: '+(String(x.description??'').trim()||'Sin detalle');
+      card.appendChild(title);card.appendChild(detail);detailBox.appendChild(card);
+    });
+  }
   render();
-  showMessage('appStatus',expenses.length?`${expenses.length} gastos cargados.`:'No hay gastos de octubre en la consulta.');
+  showMessage('appStatus',expenses.length+' gastos cargados.');
 }
 function render(){
   const variable=expenses.filter(x=>x.is_fixed!==true),
