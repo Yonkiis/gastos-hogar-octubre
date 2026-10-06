@@ -60,7 +60,7 @@ function detectCompany(text){
   if(/\bMETROGAS\b/.test(u)) return {company:'MetroGAS',service:'Gas',confidence:.99};
   if(/\bAYSA\b|AGUA Y SANEAMIENTOS ARGENTINOS/.test(u)) return {company:'AySA',service:'Agua',confidence:.98};
   if(/\bARBA\b/.test(u)) return {company:'ARBA',service:'ARBA departamento',confidence:.98};
-  if(/\bARLO\b|AGENCIA DE RECAUDACI[ÓO]N\s+LOMAS\s+DE\s+ZAMORA/.test(u)) return {company:'ARLO',service:'Municipal',confidence:.99};
+  if(/\bARLO\b|AGENCIA DE RECAUDACI[ÓO]N\s+LOMAS\s+DE\s+ZAMORA|MUNICIPALIDAD\s+DE\s+LOMAS\s+DE\s+ZAMORA|LOMAS\s+DE\s+ZAMORA/.test(u)) return {company:'ARLO',service:'Municipal',confidence:.99};
   if(/MUNICIPAL/.test(u)) return {company:'Municipal',service:'Municipal',confidence:.80};
   if(/\bPERSONAL\b|\bMOVISTAR\b|\bCLARO\b|\bTELECENTRO\b/.test(u)) return {company:'',service:'Internet',confidence:.60};
   return {company:'',service:'Otro',confidence:0};
