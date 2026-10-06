@@ -25,7 +25,7 @@ const parse=v=>Number(String(v||'').replace(/[^0-9]/g,''))||0;
 const monthName=m=>new Date(m+'-01T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'});
 const monthRange=m=>({start:m+'-01',end:new Date(Number(m.slice(0,4)),Number(m.slice(5,7)),0).toISOString().slice(0,10)});
 function formatField(el){const d=el.value.replace(/[^0-9]/g,'');el.value=d?'$'+Number(d).toLocaleString('es-AR'):''}
-function prettyDate(v){if(!v)return '📅 Elegir fecha';const d=new Date(v+'T12:00:00');return '📅 '+d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'long'}).replace(/^./,x=>x.toUpperCase())}function syncDateDisplay(){if(dateDisplay)dateDisplay.textContent=prettyDate(date.value)}function setMonth(m){currentMonth=m;monthPicker.value=m;monthTitle.textContent=monthName(m);expenseTitle.textContent='Agregar gasto de '+monthName(m);historyTitle.textContent='Gastos cargados en '+monthName(m);const r=monthRange(m);date.min=r.start;date.max=r.end;if(!date.value||date.value<r.start||date.value>r.end)date.value=r.start;syncDateDisplay();loadMonth()}
+function prettyDate(v){return v?"📅 "+new Date(v+"T12:00:00").toLocaleDateString("es-AR",{weekday:"short",day:"numeric",month:"long"}).replace(/^./,x=>x.toUpperCase()):"📅 Elegir fecha"}function syncDateDisplay(){if(dateDisplay)dateDisplay.textContent=prettyDate(date.value)}function setMonth(m){currentMonth=m;monthPicker.value=m;monthTitle.textContent=monthName(m);expenseTitle.textContent='Agregar gasto de '+monthName(m);historyTitle.textContent='Gastos cargados en '+monthName(m);const r=monthRange(m);date.min=r.start;date.max=r.end;if(!date.value||date.value<r.start||date.value>r.end)date.value=r.start;syncDateDisplay();loadMonth()}
 function resetEdit(){editingId=null;editBox.classList.add('hide')}
 async function loadIncome(){
  const r=await db.from('household_incomes').select('*').eq('month_key',currentMonth).maybeSingle();
@@ -103,4 +103,4 @@ db.auth.getSession().then(r=>{if(r.data.session)show()});
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
 
-function openDatePicker(el){if(!el)return;el.showPicker?el.showPicker():el.click()}dateDisplay.onclick=()=>openDatePicker(date);date.onchange=syncDateDisplay;editDateDisplay.onclick=()=>openDatePicker(editDate);editDate.onchange=()=>{editDateDisplay.textContent=prettyDate(editDate.value)};document.querySelectorAll('[data-date]').forEach(b=>b.onclick=()=>{const now=new Date();if(b.dataset.date==='today')date.value=new Date().toISOString().slice(0,10);else if(b.dataset.date==='yesterday'){now.setDate(now.getDate()-1);date.value=now.toISOString().slice(0,10)}else openDatePicker(date);syncDateDisplay()});
+function openDatePicker(el){if(!el)return;el.showPicker?el.showPicker():el.click()}dateDisplay.onclick=()=>openDatePicker(date);date.onchange=syncDateDisplay;editDateDisplay.onclick=()=>openDatePicker(editDate);editDate.onchange=()=>{editDateDisplay.textContent=prettyDate(editDate.value)};
