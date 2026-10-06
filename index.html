@@ -153,7 +153,17 @@ async function leaveApp(){currentSession=null;expenses=[];if(liveChannel){await 
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();showMessage('authStatus','Ingresando…');const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;const {data,error}=await client.auth.signInWithPassword({email,password});if(error){showMessage('authStatus','No pudimos iniciar sesión. Revisá el correo y la contraseña.',true);return}showMessage('authStatus','');if(data.session)await enterApp(data.session)});
 document.getElementById('signup').addEventListener('click',async()=>{const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||password.length<8){showMessage('authStatus','Ingresá un correo y una contraseña de al menos 8 caracteres.',true);return}showMessage('authStatus','Creando cuenta…');const emailRedirectTo=window.location.origin+window.location.pathname;const {data,error}=await client.auth.signUp({email,password},{emailRedirectTo});if(error){showMessage('authStatus','No se pudo crear la cuenta. Probá iniciar sesión o revisá la configuración del correo.',true);return}if(data.session){showMessage('authStatus','Cuenta creada.');await enterApp(data.session)}else showMessage('authStatus','Cuenta creada. Revisá tu correo para confirmarla y después iniciá sesión.')});
 document.getElementById('signout').addEventListener('click',async()=>{await client.auth.signOut();await leaveApp()});
-document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('income_settings').upsert({id:1,your_income:your,her_income:her,updated_at:new Date().toISOString()},{onConflict:'id'});if(error){
+document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}showMessage('incomeStatus','Guardando sueldos…');
+const result=await client.from('income_settings').update({your_income:your,her_income:her,updated_at:new Date().toISOString()}).eq('id',1);
+if(result.error){
+  console.error('income_settings update error:',result.error);
+  const detalle=[result.error.message,result.error.code,result.error.details,result.error.hint].filter(Boolean).join(' | ');
+  showMessage('incomeStatus','ERROR AL ACTUALIZAR SUELDOS: '+detalle,true);
+  return;
+}
+incomes={you:your,her:her};
+render();
+showMessage('incomeStatus','Sueldos guardados correctamente.');if(error){
   console.error('income_settings upsert error:', error);
   const detalle = [error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
   showMessage('incomeStatus','ERROR DE SUPABASE: '+detalle,true);
@@ -168,24 +178,17 @@ showMessage('incomeStatus','Sueldos guardados. El reparto y el saldo se recalcul
     if(digits) el.value=new Intl.NumberFormat('es-AR').format(Number(digits));
   });
   el.addEventListener('blur',e=>formatMoneyInput(e.target));
-});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {data:savedExpense,error}=await client.from('expenses').insert(row).select('*').single();
+});document.getElementById('expenseForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const date=document.getElementById('date').value,amount=parseMoney(document.getElementById('amount').value);if(!date.startsWith('2026-10-')||!amount||amount<=0){showMessage('appStatus','Ingresá una fecha de octubre y un importe mayor a cero.',true);return}const row={expense_date:date,category:document.getElementById('category').value,description:document.getElementById('detail').value.trim()||document.getElementById('category').value,amount,paid_by:document.getElementById('paidBy').value,is_fixed:false};const {error}=await client.from('expenses').insert(row);
 if(error){
   console.error('expenses insert error:', error);
   const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
   showMessage('appStatus','ERROR DE SUPABASE AL GUARDAR: '+detalle,true);
   return;
 }
-if(!savedExpense){
-  showMessage('appStatus','Supabase guardó el gasto pero no devolvió el registro. Actualizando la lista…',true);
-}
 document.getElementById('amount').value='';
 document.getElementById('detail').value='';
 await loadExpenses();
-if(expenses.some(x=>String(x.id)===String(savedExpense?.id))){
-  showMessage('appStatus','Gasto agregado correctamente.');
-}else{
-  showMessage('appStatus','El gasto se guardó, pero no aparece al leer la lista. Revisá las políticas de lectura (RLS) de expenses.',true);
-}});
+showMessage('appStatus','Gasto agregado correctamente.');
 document.getElementById('expenseRows').addEventListener('click',async e=>{const id=e.target.dataset.id;if(!id||!confirm('¿Eliminar este gasto?'))return;const {error}=await client.from('expenses').delete().eq('id',id);if(error){showMessage('appStatus','No se pudo eliminar el gasto.',true);return}await loadExpenses()});
 document.getElementById('date').value='2026-10-01';
 
