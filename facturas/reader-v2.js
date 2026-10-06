@@ -81,6 +81,12 @@ function parseEdesur(text){
   // "Liquidación de Servicios Públicos..." y antes del domicilio.
   const lsp=lines.findIndex(x=>/LIQUIDACI[ÓO]N\\s+DE\\s+SERVICIOS\\s+P[ÚU]BLICOS/i.test(x));
   if(lsp>=0){
+    // En los PDF de Edesur el titular suele estar en la misma línea que "Cliente:".
+    const sameLine=t.match(/([^\\n]+?)\\s+Cliente\\s*:\s*\\d{6,12}/i);
+    if(sameLine && !/^(Liquidación|N°|Cliente)/i.test(sameLine[1].trim())){
+      const name=sameLine[1].trim();
+      if(name.length>=5 && !/[0-9]/.test(name)) out.holder=candidate(name,.99,'Titular antes de Cliente:','Edesur');
+    }
     for(let i=lsp+1;i<Math.min(lines.length,lsp+6);i++){
       const x=lines[i].trim();
       if(!x || /^N[°º]\\s*DE\\s*MEDIDOR/i.test(x)) continue;
