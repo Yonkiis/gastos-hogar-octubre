@@ -180,7 +180,25 @@ $('cancelBtn').onclick=closeModal;
 $('closeView').onclick=()=>{$('viewModal').classList.add('hidden');$('viewer').src='about:blank';};
 $('fileInput').onchange=e=>{
   invoiceFile=e.target.files[0]||null;
-  if(invoiceFile)$('fileInfo').textContent='Factura seleccionada: '+invoiceFile.name;
+  if(invoiceFile){
+    $('fileInfo').innerHTML='<b>Factura seleccionada:</b> '+esc(invoiceFile.name);
+    const preview=$('invoicePreview');
+    if(preview){
+      preview.innerHTML='';
+      if(invoiceFile.type.startsWith('image/')){
+        const img=document.createElement('img');
+        img.src=URL.createObjectURL(invoiceFile);
+        img.alt='Vista previa de la factura';
+        preview.appendChild(img);
+      }else if(invoiceFile.type==='application/pdf'){
+        const iframe=document.createElement('iframe');
+        iframe.src=URL.createObjectURL(invoiceFile);
+        iframe.title='Vista previa de la factura';
+        preview.appendChild(iframe);
+      }
+      preview.classList.remove('hidden');
+    }
+  }
 };
 $('receiptInput').onchange=e=>{
   receiptFile=e.target.files[0]||null;
