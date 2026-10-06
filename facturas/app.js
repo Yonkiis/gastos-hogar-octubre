@@ -119,34 +119,16 @@ async function readFile(file){
   $('dropzone').classList.add('hidden');
   $('reading').textContent='⏳ Analizando factura argentina...';
   try{
-    // Para PDFs argentinos usamos primero Zerodoc, que devuelve campos
-    // estructurados. El lector local queda como respaldo si el servicio falla.
+    // Usamos primero el mismo lector argentino que comprobamos con Edesur.
+    // Zerodoc queda como respaldo si el lector local no puede procesar el documento.
     let result;
     try{
-      $('reading').textContent='⏳ Analizando factura con lector inteligente...';
-      result=await readViaZerodoc(file);
-    }catch(zerodocError){
-      console.warn('Zerodoc no disponible; usando lector argentino local:',zerodocError);
-      $('reading').textContent='⏳ Leyendo formato argentino...';
+      $('reading').textContent='⏳ Leyendo factura con lector argentino...';
       result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
-    }
-
-    // Zerodoc es el lector principal. Si deja algún campo vacío,
-    // completamos solamente los campos faltantes con el lector argentino local.
-    if(result.source==='zerodoc'){
-      const missing=['company','service','holder','account','amount','issue','due']
-        .filter(key=>!result.fields?.[key]?.value);
-      if(missing.length){
-        try{
-          $('reading').textContent='⏳ Completando campos faltantes...';
-          const local=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
-          for(const key of missing){
-            if(local.fields?.[key]?.value) result.fields[key]=local.fields[key];
-          }
-        }catch(localError){
-          console.warn('No se pudieron completar campos con el lector local:',localError);
-        }
-      }
+    }catch(localError){
+      console.warn('Lector argentino no disponible; usando lector inteligente:',localError);
+      $('reading').textContent='⏳ Analizando con lector inteligente...';
+      result=await readViaZerodoc(file);
     }
 
     const f=result.fields||{};
@@ -160,7 +142,7 @@ async function readFile(file){
 
     invoiceFile=file;
     renderAnalysis(result);
-    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source||'lector inteligente');
+    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source||'lector argentino');
 
     const complete=!!(f.company?.value&&f.amount?.value&&f.due?.value&&f.issue?.value&&f.account?.value&&f.holder?.value);
     $('reading').textContent=complete
