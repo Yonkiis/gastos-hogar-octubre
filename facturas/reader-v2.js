@@ -166,11 +166,21 @@ function parseMetroGas(text){
   // separados en líneas distintas:
   // "Número de cliente" / "30012204301".
   if(!out.account){
-    const clientLabel=lines.findIndex(x=>/^N[ÚU]MERO\s+DE\s+CLIENTE\s*$/i.test(x));
+    // MetroGAS puede posicionar el número con coordenadas PDF de forma que
+    // PDF.js lo mezcle con otros elementos. Buscamos el número inmediatamente
+    // después de la etiqueta, incluso si quedó en otra "fila" de texto.
+    const near=t.match(/N[ÚU]MERO\s+DE\s+CLIENTE[\\s\\S]{0,120}?\\b(\\d{11})\\b/i);
+    if(near){
+      out.account=candidate(near[1],.99,'Número de cliente próximo a su etiqueta','MetroGAS');
+    }
+  }
+
+  if(!out.account){
+    const clientLabel=lines.findIndex(x=>/N[ÚU]MERO\s+DE\s+CLIENTE/i.test(x));
     if(clientLabel>=0){
-      for(let i=clientLabel+1;i<Math.min(lines.length,clientLabel+4);i++){
-        const x=lines[i].replace(/\s+/g,'').trim();
-        if(/^\d{6,14}$/.test(x)){
+      for(let i=clientLabel+1;i<Math.min(lines.length,clientLabel+6);i++){
+        const x=lines[i].replace(/\\s+/g,'').trim();
+        if(/^\\d{6,14}$/.test(x)){
           out.account=candidate(x,.99,'Número debajo de la etiqueta Número de cliente','MetroGAS');
           break;
         }
