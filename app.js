@@ -14,7 +14,7 @@ const login=$('login'),app=$('app'),email=$('email'),password=$('password'),logi
 const incomeForm=$('incomeForm'),incomeMsg=$('incomeMsg'),incomeSummary=$('incomeSummary');
 const totoIncome=$('totoIncome'),rocioIncome=$('rocioIncome');
 const expenseForm=$('expenseForm'),expenseMsg=$('expenseMsg');
-const date=$('date'),category=$('category'),amount=$('amount'),detail=$('detail'),paidBy=$('paidBy');
+const date=$('date'),dateDisplay=$('dateDisplay'),editDateDisplay=$('editDateDisplay'),category=$('category'),amount=$('amount'),detail=$('detail'),paidBy=$('paidBy');
 const list=$('list'),count=$('count'),totalEl=$('total'),balance=$('balance'),logout=$('logout');
 const monthPicker=$('monthPicker'),monthTitle=$('monthTitle'),expenseTitle=$('expenseTitle'),historyTitle=$('historyTitle');
 const editBox=$('editBox'),editDate=$('editDate'),editCategory=$('editCategory'),editAmount=$('editAmount'),editDetail=$('editDetail'),editPaidBy=$('editPaidBy'),cancelEdit=$('cancelEdit');
@@ -25,7 +25,7 @@ const parse=v=>Number(String(v||'').replace(/[^0-9]/g,''))||0;
 const monthName=m=>new Date(m+'-01T12:00:00').toLocaleDateString('es-AR',{month:'long',year:'numeric'});
 const monthRange=m=>({start:m+'-01',end:new Date(Number(m.slice(0,4)),Number(m.slice(5,7)),0).toISOString().slice(0,10)});
 function formatField(el){const d=el.value.replace(/[^0-9]/g,'');el.value=d?'$'+Number(d).toLocaleString('es-AR'):''}
-function setMonth(m){currentMonth=m;monthPicker.value=m;monthTitle.textContent=monthName(m);expenseTitle.textContent='Agregar gasto de '+monthName(m);historyTitle.textContent='Gastos cargados en '+monthName(m);const r=monthRange(m);date.min=r.start;date.max=r.end;if(!date.value||date.value<r.start||date.value>r.end)date.value=r.start;loadMonth()}
+function prettyDate(v){if(!v)return '📅 Elegir fecha';const d=new Date(v+'T12:00:00');return '📅 '+d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'long'}).replace(/^./,x=>x.toUpperCase())}function syncDateDisplay(){if(dateDisplay)dateDisplay.textContent=prettyDate(date.value)}function setMonth(m){currentMonth=m;monthPicker.value=m;monthTitle.textContent=monthName(m);expenseTitle.textContent='Agregar gasto de '+monthName(m);historyTitle.textContent='Gastos cargados en '+monthName(m);const r=monthRange(m);date.min=r.start;date.max=r.end;if(!date.value||date.value<r.start||date.value>r.end)date.value=r.start;syncDateDisplay();loadMonth()}
 function resetEdit(){editingId=null;editBox.classList.add('hide')}
 async function loadIncome(){
  const r=await db.from('household_incomes').select('*').eq('month_key',currentMonth).maybeSingle();
@@ -86,7 +86,7 @@ function renderBalance(total){
  balance.innerHTML=html
 }
 function startEdit(x){
- editingId=x.id;editDate.value=x.expense_date;editCategory.value=x.category;editAmount.value=money(x.amount);editDetail.value=x.description||'';editPaidBy.value=x.paid_by;editBox.classList.remove('hide');editBox.scrollIntoView({behavior:'smooth',block:'center'})
+ editingId=x.id;editDate.value=x.expense_date;if(editDateDisplay)editDateDisplay.textContent=prettyDate(x.expense_date);editCategory.value=x.category;editAmount.value=money(x.amount);editDetail.value=x.description||'';editPaidBy.value=x.paid_by;editBox.classList.remove('hide');editBox.scrollIntoView({behavior:'smooth',block:'center'})
 }
 loginForm.onsubmit=async e=>{e.preventDefault();loginMsg.textContent='';const r=await db.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(r.error){loginMsg.textContent=r.error.message;return}show()};
 function show(){login.classList.add('hide');app.classList.remove('hide');setMonth(currentMonth)}
@@ -102,3 +102,5 @@ $('editForm').onsubmit=async e=>{e.preventDefault();if(!editingId)return;const r
 db.auth.getSession().then(r=>{if(r.data.session)show()});
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
+
+function openDatePicker(el){if(!el)return;el.showPicker?el.showPicker():el.click()}dateDisplay.onclick=()=>openDatePicker(date);date.onchange=syncDateDisplay;editDateDisplay.onclick=()=>openDatePicker(editDate);editDate.onchange=()=>{editDateDisplay.textContent=prettyDate(editDate.value)};document.querySelectorAll('[data-date]').forEach(b=>b.onclick=()=>{const now=new Date();if(b.dataset.date==='today')date.value=new Date().toISOString().slice(0,10);else if(b.dataset.date==='yesterday'){now.setDate(now.getDate()-1);date.value=now.toISOString().slice(0,10)}else openDatePicker(date);syncDateDisplay()});
