@@ -131,7 +131,27 @@ async function readFile(file){
       result=await readViaZerodoc(file);
     }
 
-    const f=result.fields||{};
+    // Primero mostramos lo que pudo extraer el lector local.
+    // Si faltan datos importantes, consultamos Zerodoc como segunda capa
+    // y completamos solamente los campos que todavía están vacíos.
+    let finalResult=result;
+    let f=result.fields||{};
+    const missing=!f.company?.value||!f.amount?.value||!f.due?.value||!f.issue?.value||!f.account?.value||!f.holder?.value;
+    if(missing){
+      try{
+        $('reading').textContent='⏳ Faltan datos. Verificando con lector inteligente...';
+        const smart=await readViaZerodoc(file);
+        const merged={...f};
+        for(const key of ['company','service','amount','due','issue','account','holder']){
+          if(!merged[key]?.value && smart.fields?.[key]?.value) merged[key]=smart.fields[key];
+        }
+        finalResult={...result,fields:merged,source:result.source+' + zerodoc'};
+        f=merged;
+      }catch(smartError){
+        console.warn('No se pudo completar con Zerodoc:',smartError);
+      }
+    }
+
     if(f.company?.value)$('company').value=f.company.value;
     if(f.service?.value)$('service').value=f.service.value;
     if(f.amount?.value)$('amount').value=money(f.amount.value);
@@ -141,7 +161,7 @@ async function readFile(file){
     if(f.holder?.value)$('holderName').value=f.holder.value;
 
     invoiceFile=file;
-    renderAnalysis(result);
+    renderAnalysis(finalResult);
     $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source||'lector argentino');
 
     const complete=!!(f.company?.value&&f.amount?.value&&f.due?.value&&f.issue?.value&&f.account?.value&&f.holder?.value);
