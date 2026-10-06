@@ -36,7 +36,7 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <main id="app" class="wrap hide">
 <div style="display:flex;justify-content:space-between;align-items:center">
 <div><h1>Gastos de octubre</h1><p>Reparto proporcional según sueldo</p></div>
-<div>Octubre 2026 · v4.0 <button id="logout" class="delete">Salir</button></div>
+<div>Octubre 2026 · v4.1 <button id="logout" class="delete">Salir</button></div>
 </div>
 
 <section class="panel">
@@ -76,7 +76,7 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
 </main>
 
-<script src="./supabase.js?v=5"></script>
+<script src="./supabase.js?v=6"></script>
 <script>const db=window.supabase.createClient('https://xnexfqbcxvrloirhrteo.supabase.co','sb_publishable_S50gnzXMiYfh0O3IyqM6DQ_Kjqvdhlp',{auth:{persistSession:true,autoRefreshToken:true,storageKey:'gastos-hogar-v3'}});
 let expenses=[];
 let incomes={toto:0,rocio:0};
