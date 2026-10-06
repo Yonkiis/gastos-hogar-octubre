@@ -222,7 +222,7 @@ window.togglePaid=async(id,status)=>{
   if(error)alert(error.message);else loadBills();
 };
 
-window.viewFile=path=>{
+window.viewFile=path=>{ path=decodeURIComponent(path);
   const {data}=db.storage.from('household-bills').getPublicUrl(path);
   $('viewer').src=data.publicUrl;
   $('viewModal').classList.remove('hidden');
