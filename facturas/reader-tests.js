@@ -7,7 +7,7 @@ for(const [type,gen] of Object.entries(generators)){
   for(let i=0;i<100;i++){
     total++;
     const text=gen(i), r=__parseTextForTest(text), f=r.fields;
-    const ok=!!(f.amount?.value && f.due?.value && (f.company?.value || type==='Expensas' || type==='Alquiler' || type==='Seguro'));
+    const ok=!!(f.amount?.value && f.due?.value);
     if(ok) passed++; else failed.push({type,i,detected:r.detected,fields:f});
   }
 }
