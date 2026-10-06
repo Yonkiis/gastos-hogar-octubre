@@ -51,9 +51,32 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const authPanel=document.getElementById('authPanel'),app=document.getElementById('app');let currentSession=null,expenses=[],liveChannel=null,incomes={you:0,her:0};
 function showMessage(id,msg,error=false){const el=document.getElementById(id);el.textContent=msg;el.classList.toggle('error',error)}
 function dateLabel(d){const [y,m,day]=d.split('-');return `${day}/${m}/${y}`}
-async function loadIncomes(){if(!currentSession)return;const {data,error}=await client.from('income_settings').select('*').eq('id',1).maybeSingle();if(error){showMessage('incomeStatus','No se pudieron cargar los ingresos. Revisá la tabla income_settings en Supabase.',true);return}incomes={you:Number(data?.your_income)||0,her:Number(data?.her_income)||0};document.getElementById('yourIncome').value=incomes.you?fmtInput(incomes.you):'';document.getElementById('herIncome').value=incomes.her?fmtInput(incomes.her):'';render()} async function loadExpenses(){if(!currentSession)return;showMessage('appStatus','Actualizando…');const {data,error}=await client.from('expenses').select('*').gte('expense_date','2026-10-01').lte('expense_date','2026-10-31').order('expense_date').order('created_at');if(error){showMessage('appStatus','No se pudieron cargar los gastos. Revisá tu conexión e iniciá sesión nuevamente.',true);return}expenses=data||[];render();showMessage('appStatus','')}
+async function loadIncomes(){if(!currentSession)return;const {data,error}=await client.from('income_settings').select('*').eq('id',1).maybeSingle();if(error){showMessage('incomeStatus','No se pudieron cargar los ingresos. Revisá la tabla income_settings en Supabase.',true);return}incomes={you:Number(data?.your_income)||0,her:Number(data?.her_income)||0};document.getElementById('yourIncome').value=incomes.you?fmtInput(incomes.you):'';document.getElementById('herIncome').value=incomes.her?fmtInput(incomes.her):'';render()} async function loadExpenses(){
+  if(!currentSession)return;
+  showMessage('appStatus','Actualizando…');
+
+  // No dependemos de created_at para ordenar: así los gastos existentes
+  // siguen apareciendo aunque esa columna no exista o tenga otro nombre.
+  const {data,error}=await client
+    .from('expenses')
+    .select('*')
+    .gte('expense_date','2026-10-01')
+    .lte('expense_date','2026-10-31')
+    .order('expense_date',{ascending:true});
+
+  if(error){
+    console.error('expenses select error:',error);
+    const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
+    showMessage('appStatus','ERROR AL LEER LOS GASTOS: '+detalle,true);
+    return;
+  }
+
+  expenses=Array.isArray(data)?data:[];
+  render();
+  showMessage('appStatus',expenses.length?`${expenses.length} gastos cargados.`:'No hay gastos de octubre en la consulta.');
+}
 function render(){
-  const variable=expenses.filter(x=>!x.is_fixed),
+  const variable=expenses.filter(x=>x.is_fixed!==true),
     variableSum=variable.reduce((s,x)=>s+Number(x.amount),0),
     total=variableSum,
     incomeTotal=incomes.you+incomes.her,
