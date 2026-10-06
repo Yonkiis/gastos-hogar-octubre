@@ -104,3 +104,4 @@ db.auth.getSession().then(r=>{if(r.data.session)show()});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
 
 function openDatePicker(el){if(!el)return;el.showPicker?el.showPicker():el.click()}dateDisplay.onclick=()=>openDatePicker(date);date.onchange=syncDateDisplay;editDateDisplay.onclick=()=>openDatePicker(editDate);editDate.onchange=()=>{editDateDisplay.textContent=prettyDate(editDate.value)};
+$('refreshPage').onclick=()=>location.reload();
