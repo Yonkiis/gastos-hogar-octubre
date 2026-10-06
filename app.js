@@ -100,3 +100,5 @@ cancelEdit.onclick=resetEdit;
 $('editForm').onsubmit=async e=>{e.preventDefault();if(!editingId)return;const row={expense_date:editDate.value,category:editCategory.value,description:editDetail.value.trim(),amount:parse(editAmount.value),paid_by:editPaidBy.value};if(!row.amount){$('editMsg').textContent='Ingresá un importe válido.';return}const r=await db.from('household_expenses').update(row).eq('id',editingId);if(r.error){$('editMsg').textContent=r.error.message;return}$('editMsg').textContent='Gasto actualizado.';resetEdit();await loadExpenses()};
 ['totoIncome','rocioIncome','amount','editAmount'].forEach(id=>$(id).addEventListener('input',e=>formatField(e.target)));
 db.auth.getSession().then(r=>{if(r.data.session)show()});
+
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js");
