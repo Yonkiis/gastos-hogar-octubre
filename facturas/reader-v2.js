@@ -239,23 +239,40 @@ function parseArlo(text){
 }
 
 function parseGeneric(text){
-  const t=normalize(text), lines=linesOf(t), out={};
+  const t=normalize(text), lines=linesOf(text), out={};
+
   const total=first(
     t.match(/TOTAL\s+A\s+PAGAR[^\d$]{0,40}\$?\s*([0-9.,]+)/i),
     t.match(/TOTAL[^\d$]{0,30}\$?\s*([0-9.,]+)/i)
   );
-  if(total)out.amount=candidate(moneyAR(total[1]),.55,'Etiqueta TOTAL','generic');
+  if(total)out.amount=candidate(moneyAR(total[1]),.75,'Etiqueta TOTAL','generic');
 
-  const due=first(
-    t.match(/(?:VENCIMIENTO|FECHA\s+DE\s+VENCIMIENTO)[^\d]{0,30}(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i)
+  const due=t.match(/(?:VENCIMIENTO|FECHA\s+DE\s+VENCIMIENTO)[^\d]{0,30}(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if(due)out.due=candidate(dateISO(due[1]),.75,'Etiqueta de vencimiento','generic');
+
+  const issue=t.match(/(?:EMISI[ÓO]N|FECHA\s+DE\s+EMISI[ÓO]N)[^\d]{0,30}(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if(issue)out.issue=candidate(dateISO(issue[1]),.75,'Etiqueta de emisión','generic');
+
+  const account=first(
+    t.match(/(?:N[ÚU]MERO\s+DE\s+CLIENTE|N[ÚU]MERO\s+DE\s+CUENTA|CLIENTE\s*N[°º]?|CUENTA)\s*[:#-]?\s*(\d{6,14})/i),
+    t.match(/(?:P[ÓO]LIZA|UNIDAD)\s*[:#-]?\s*(\d{5,14})/i)
   );
-  if(due)out.due=candidate(dateISO(due[1]),.60,'Etiqueta de vencimiento','generic');
+  if(account)out.account=candidate(account[1],.70,'Referencia de cliente/cuenta/póliza','generic');
 
-  const issue= t.match(/(?:EMISI[ÓO]N|FECHA\s+DE\s+EMISI[ÓO]N)[^\d]{0,30}(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
-  if(issue)out.issue=candidate(dateISO(issue[1]),.60,'Etiqueta de emisión','generic');
+  const holder=first(
+    t.match(/(?:TITULAR|CLIENTE|CONTRIBUYENTE|RAZ[ÓO]N\s+SOCIAL|NOMBRE\s+Y\s+APELLIDO)\s*[:#-]\s*([^\n]+)/i),
+    t.match(/(?:SE[ÑN]OR(?:ES)?|SR\.?|SRA\.?)\s+([^\n]+)/i)
+  );
+  if(holder){
+    const value=holder[1].trim();
+    if(value&&!/^\d/.test(value))out.holder=candidate(value,.70,'Etiqueta de titular/cliente','generic');
+  }
 
-  const account=t.match(/(?:N[ÚU]MERO\s+DE\s+CLIENTE|N[ÚU]MERO\s+DE\s+CUENTA|CLIENTE\s*N[°º]?)\s*[:#-]?\s*(\d{6,14})/i);
-  if(account)out.account=candidate(account[1],.55,'Etiqueta de cliente/cuenta','generic');
+  const supplier=first(
+    t.match(/(?:EMPRESA|PROVEEDOR|PRESTADOR|EMISOR)\s*[:#-]\s*([^\n]+)/i),
+    t.match(/^(PERSONAL|MOVISTAR|CLARO|TELECENTRO)\b/im)
+  );
+  if(supplier)out.company=candidate(supplier[1].trim(),.70,'Empresa/proveedor','generic');
 
   return out;
 }
