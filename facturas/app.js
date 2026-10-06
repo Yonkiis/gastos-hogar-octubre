@@ -20,23 +20,35 @@ if(company==='MetroGAS'){
 let m=clean.match(/TOTAL A PAGAR\s*\$?\s*([0-9.]+,[0-9]{2})/i);if(m)amount=m[1];
 m=clean.match(/FECHA DE VENCIMIENTO\s*:\s*([0-9\/.-]+)/i);if(m)due=parseDate(m[1]);
 m=clean.match(/FECHA DE EMISI[ÓO]N\s*:\s*([0-9\/.-]+)/i);if(m)issue=parseDate(m[1]);
-m=clean.match(/N[úu]mero\s+de\s+cliente\s*([0-9]{8,})/i);if(m)account=m[1];
-/* MetroGAS: el PDF de esta factura concatena los bloques sin saltos de línea.
-   La estructura real es: MetroGAS S.A. -> número de referencia (12 dígitos)
-   -> titular -> domicilio. Por eso no buscamos "la primera palabra en mayúsculas",
-   que podía devolver "Código". */
+
 const lines=clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-const metroIndex=lines.findIndex(x=>/METROGAS\s+S\.A\./i.test(x));
+const clientLabel=/N[ÚU]MERO\s+DE\s+CLIENTE/i;
+const clientIndex=lines.findIndex(x=>clientLabel.test(x));
+if(clientIndex>=0){
+  for(let j=clientIndex+1;j<Math.min(clientIndex+4,lines.length);j++){
+    const cm=lines[j].match(/\b\d{11}\b/);
+    if(cm){account=cm[0];break}
+  }
+}
+if(!account){
+  const cm=clean.match(/N[ÚU]MERO\s+DE\s+CLIENTE\s*[:#-]?\s*(\d{11})/i);
+  if(cm)account=cm[1];
+}
+
+/* MetroGAS residencial: el bloque superior contiene un número de referencia,
+   luego el nombre del titular y después la dirección. El número de cliente
+   está separado y se obtiene arriba mediante la etiqueta "Número de cliente". */
+const metroIndex=lines.findIndex(x=>/METROGAS\s+S\.A\.?/i.test(x));
 if(metroIndex>=0){
-  const section=lines.slice(metroIndex,Math.min(lines.length,metroIndex+12));
-  const refIndex=section.findIndex(x=>/\\b\\d{8,}\\b/.test(x));
-  if(refIndex>=0){
-    const after=section.slice(refIndex).join(' ');
-    const hm=after.match(/\\b\\d{8,}\\b\\s+([A-ZÁÉÍÓÚÑ]+(?:\\s+[A-ZÁÉÍÓÚÑ]+){1,5})(?=\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\\s+\\d{1,5}\\b)/i);
-    if(hm)holder=hm[1].trim();
-    if(!holder){
-      const hm2=after.match(/\\b\\d{8,}\\b\\s+([A-ZÁÉÍÓÚÑ]+(?:\\s+[A-ZÁÉÍÓÚÑ]+){1,5})\\b/i);
-      if(hm2&&!/^(CODIGO|CÓDIGO|CLIENTE|CUENTA|NUMERO|NÚMERO)$/i.test(hm2[1]))holder=hm2[1].trim();
+  const section=lines.slice(metroIndex,Math.min(lines.length,metroIndex+20));
+  for(let j=0;j<section.length-1;j++){
+    if(/^\d{10,12}$/.test(section[j])){
+      const candidate=section[j+1].replace(/\s+/g,' ').trim();
+      if(/^[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){1,5}$/i.test(candidate)&&
+         !/^(CODIGO|CÓDIGO|CLIENTE|CUENTA|NUMERO|NÚMERO)$/i.test(candidate)){
+        holder=candidate;
+        break;
+      }
     }
   }
 }
