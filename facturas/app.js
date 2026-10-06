@@ -20,8 +20,17 @@ if(company==='MetroGAS'){
 let m=clean.match(/TOTAL A PAGAR\s*\$?\s*([0-9.]+,[0-9]{2})/i);if(m)amount=m[1];
 m=clean.match(/FECHA DE VENCIMIENTO\s*:\s*([0-9\/.-]+)/i);if(m)due=parseDate(m[1]);
 m=clean.match(/FECHA DE EMISI[ÓO]N\s*:\s*([0-9\/.-]+)/i);if(m)issue=parseDate(m[1]);
-m=clean.match(/N[úu]mero de cliente\s*\n?\s*([0-9]{8,})/i);if(m)account=m[1];const clientPos=clean.search(/N[úu]mero de cliente/i);if(clientPos>0){const pre=clean.slice(0,clientPos).split('\n').map(x=>x.trim()).filter(Boolean);for(let j=0;j<pre.length-1;j++){if(/^[0-9]{8,}$/.test(pre[j])){const candidate=pre[j+1];const words=candidate.split(/\s+/);if(words.length>=2&&!/C[ÓO]DIGO|CLIENTE|CUENTA|N[ÚU]MERO/i.test(candidate)){holder=candidate;break}}}}
-if(!holder){const holderLines=clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);const ci=holderLines.findIndex(x=>/N[ÚU]MERO\s+DE\s+CLIENTE/i.test(x));if(ci>=0){for(let j=ci+1;j<Math.min(ci+5,holderLines.length);j++){const line=holderLines[j];if(/^[0-9 .-]+$/.test(line))continue;if(/[A-ZÁÉÍÓÚÑ]{3,}/i.test(line)){const candidate=line.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñüÜ .'-]/g,'').trim();const words=candidate.split(/\s+/).filter(Boolean);if(words.length>=2&&!/^(CODIGO|CÓDIGO|CLIENTE|NUMERO|NÚMERO|CUENTA|DIRECCION|DIRECCIÓN|DOMICILIO)$/i.test(candidate)){holder=candidate;break}}}if(!holder){m=clean.match(/\b(?:N[úu]mero\s+de\s+cliente\s*)?([0-9]{8,})\s+([A-Za-zÁÉÍÓÚÑáéíóúñüÜ][A-Za-zÁÉÍÓÚÑáéíóúñüÜ .'-]{4,})/i);if(m)holder=m[2].trim();}if(!holder){const hm=clean.match(/\b([A-ZÁÉÍÓÚÑ]{2,}(?:\s+[A-ZÁÉÍÓÚÑ]{2,}){1,4})\b/);if(hm&&!/TOTAL|PAGAR|LIQUIDACION|SERVICIOS|PUBLICOS|METROGAS|NUMERO|CLIENTE|FECHA|VENCIMIENTO|EMISION|CODIGO|CÓDIGO/.test(hm[1]))holder=hm[1].trim();}}
+m=clean.match(/N[úu]mero\s+de\s+cliente\s*([0-9]{8,})/i);if(m)account=m[1];
+/* MetroGAS: el PDF de esta factura concatena los bloques sin saltos de línea.
+   La estructura real es: MetroGAS S.A. -> número de referencia (12 dígitos)
+   -> titular -> domicilio. Por eso no buscamos "la primera palabra en mayúsculas",
+   que podía devolver "Código". */
+const mg=clean.match(/METROGAS\s+S\.A\.[\s\S]*?\b[0-9]{8,}\b\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .'-]{4,}?)(?=\s+(?:Espora|[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[0-9]{1,5}\b))/i);
+if(mg)holder=mg[1].trim();
+if(!holder){
+  const mg2=clean.match(/METROGAS\s+S\.A\.[\s\S]*?\b[0-9]{8,}\b\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .'-]{4,})\s+(?=[A-Z][a-záéíóúñ]+\s+\d)/i);
+  if(mg2)holder=mg2[1].trim();
+}
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
 let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
