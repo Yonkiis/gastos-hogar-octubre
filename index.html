@@ -76,8 +76,8 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
 </main>
 
-<script src="./supabase.js?v=6"></script>
-<script src="./supabase.js?v=7"></script><script src="./app.js?v=1"></script>
+
+
 </body>
 </html>+Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:0});
 const percent=n=>Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
@@ -247,5 +247,8 @@ incomeForm.onsubmit=async e=>{
 
 db.auth.getSession().then(r=>{if(r.data.session)show()});
 </script>
+
+<script src="./supabase.js?v=7"></script>
+<script src="./app.js?v=2"></script>
 </body>
 </html>
