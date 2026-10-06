@@ -23,36 +23,20 @@ h1,h2{color:#1c1c1e}h1{margin:0 0 5px;font-size:30px;letter-spacing:-.5px}h2{fon
 .balance{background:#fff8e7;border:0;border-radius:14px;padding:15px;margin-top:12px}
 .ok{background:#eaf8ee}.line{display:flex;justify-content:space-between;margin:8px 0;gap:15px}
 #incomeForm p,#expenseForm p,#editForm p{margin-bottom:0}
-#incomeMsg,#expenseMsg,#editMsg{margin-top:10px}
-#total{font-size:18px}
+#incomeMsg,#expenseMsg,#editMsg{margin-top:10px}#total{font-size:18px}
+.datePicker{position:relative}.dateDisplay{width:100%;min-height:50px;padding:13px 15px;text-align:left;border:1px solid #d1d1d6;border-radius:12px;background:#fff;color:#1c1c1e;font-size:16px;font-weight:600}.datePicker>input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.topActions{display:flex;align-items:center;gap:7px}.refreshBtn{border:0;border-radius:10px;padding:9px 12px;background:#eef4ff;color:#007aff;font-weight:600;font-size:14px;min-height:40px}
 @media(max-width:650px){
- body{font-size:15px;padding-bottom:78px}
- .wrap{padding:10px 10px 90px}
- .panel,.auth{padding:16px;margin:10px 0;border-radius:18px}
- h1{font-size:28px}.panel h2{font-size:19px}
- .grid{grid-template-columns:1fr;gap:10px}
- .field input,.field select{min-height:50px}
- .btn{width:100%;min-height:48px}
- .top{align-items:flex-start}.top b{font-size:18px}
- .expense{padding:14px;margin:8px 0;border-radius:15px}
- .expense .btn,.expense .delete{width:auto;min-height:40px;padding:9px 12px}
- .line{display:flex;flex-direction:column;gap:2px;margin:10px 0}
- .line b{display:block}
- #logout{width:auto;margin-top:0}
- #monthForm{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
- #monthPicker{grid-column:1 / -1;grid-row:1;width:100%;min-height:50px}
- #prevMonth{grid-column:1;grid-row:2}
- #nextMonth{grid-column:2;grid-row:2}
- #mobileNav{position:fixed;z-index:50;left:10px;right:10px;bottom:10px;height:60px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.08);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:0 6px 25px rgba(0,0,0,.15)}
- #mobileNav a{color:#007aff;text-decoration:none;font-size:12px;font-weight:600;text-align:center;padding:7px 15px}
- #mobileNav span{display:block;font-size:20px;line-height:22px;margin-bottom:2px}
+body{font-size:15px;padding-bottom:78px}.wrap{padding:10px 10px 90px}.panel,.auth{padding:16px;margin:10px 0;border-radius:18px}
+h1{font-size:28px}.panel h2{font-size:19px}.grid{grid-template-columns:1fr;gap:10px}.field input,.field select{min-height:50px}.btn{width:100%;min-height:48px}
+.top{align-items:flex-start}.top b{font-size:18px}.expense{padding:14px;margin:8px 0;border-radius:15px}.expense .btn,.expense .delete{width:auto;min-height:40px;padding:9px 12px}
+.line{display:flex;flex-direction:column;gap:2px;margin:10px 0}.line b{display:block}#logout{width:auto;margin-top:0}
+#monthForm{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}#monthPicker{grid-column:1 / -1;grid-row:1;width:100%;min-height:50px}#prevMonth{grid-column:1;grid-row:2}#nextMonth{grid-column:2;grid-row:2}
+#mobileNav{position:fixed;z-index:50;left:10px;right:10px;bottom:10px;height:60px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(0,0,0,.08);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:0 6px 25px rgba(0,0,0,.15)}
+#mobileNav a{color:#007aff;text-decoration:none;font-size:12px;font-weight:600;text-align:center;padding:7px 15px}#mobileNav span{display:block;font-size:20px;line-height:22px;margin-bottom:2px}
+.topActions{gap:6px}.refreshBtn{padding:8px 10px;font-size:13px;min-height:40px}
 }
 @media(min-width:651px){#mobileNav{display:none}}
-<style>
-.datePicker{position:relative}.dateDisplay{width:100%;min-height:50px;padding:13px 15px;text-align:left;border:1px solid #d1d1d6;border-radius:12px;background:#fff;color:#1c1c1e;font-size:16px;font-weight:600}.datePicker>input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.dateQuick{display:flex;gap:7px;margin-top:7px}.dateQuick button{flex:1;border:0;background:#eef4ff;color:#007aff;border-radius:10px;padding:8px 5px;font-weight:600;font-size:13px}.dateQuick button:active,.dateDisplay:active{transform:scale(.98)}
-<style>
-.topActions{display:flex;align-items:center;gap:7px}.refreshBtn{border:0;border-radius:10px;padding:9px 12px;background:#eef4ff;color:#007aff;font-weight:600;font-size:14px;min-height:40px}
-@media(max-width:650px){.topActions{gap:6px}.refreshBtn{padding:8px 10px;font-size:13px;min-height:40px}}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#183153">
@@ -139,6 +123,6 @@ h1,h2{color:#1c1c1e}h1{margin:0 0 5px;font-size:30px;letter-spacing:-.5px}h2{fon
 <a href="#month"><span>◷</span>Mes</a>
 </nav>
 <script src="./supabase.js?v=7"></script>
-<script src="./app.js?v=5"></script>
+<script src="./app.js?v=6"></script>
 </body>
 </html>
