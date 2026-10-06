@@ -14,23 +14,7 @@ function resetForm(){editingId=null;invoiceFile=null;receiptFile=null;editingRec
 function openModal(){resetForm();$('modal').classList.remove('hidden')}
 function closeModal(){$('modal').classList.add('hidden')}
 function parseDate(s){const m=s.match(/(?:0?[1-9]|[12]\d|3[01])\s*[\/-]\s*(?:0?[1-9]|1[0-2])\s*[\/-]\s*(?:20\d{2})/);if(!m)return '';const p=m[0].replace(/\s/g,'').split(/[\/-]/);return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')}
-function parseAmount(s){
-  const m=s.match(/(?:\$\s*)?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})|\d+(?:[.,]\d{2}))/);
-  if(!m)return '';
-  const raw=m[1].replace(/\s/g,'');
-  let n;
-  if(raw.includes('.')&&raw.includes(',')){
-    n=raw.lastIndexOf(',')>raw.lastIndexOf('.')?Number(raw.replace(/\./g,'').replace(',','.')):Number(raw.replace(/,/g,''));
-  }else if(raw.includes(',')){
-    const parts=raw.split(',');
-    n=parts.length===2&&parts[1].length===2?Number(parts[0].replace(/\./g,'')+'.'+parts[1]):Number(raw.replace(/,/g,''));
-  }else if(raw.includes('.')){
-    const parts=raw.split('.');
-    n=parts.length===2&&parts[1].length===2?Number(raw):Number(raw.replace(/\./g,''));
-  }else n=Number(raw);
-  if(!Number.isFinite(n))return '';
-  return new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
-}
+function parseAmount(s){const m=s.match(/(?:\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{2})|\d+(?:,\d{2}))/);return m?m[1]:''}
 function analyzeText(text){const clean=text.replace(/\r/g,'');const upper=clean.toUpperCase();let company='',service='Otro';if(upper.includes('METROGAS')){company='MetroGAS';service='Gas'}else if(upper.includes('EDESUR')){company='Edesur';service='Luz'}else if(upper.includes('AYSA')){company='AySA';service='Agua'}else if(upper.includes('ARBA')){company='ARBA';service='ARBA departamento'}else if(upper.includes('MUNICIPAL')){company='Municipal';service='Municipal'}else if(upper.includes('PERSONAL')||upper.includes('MOVISTAR')||upper.includes('CLARO')||upper.includes('TELECENTRO')){service='Internet'}
 let amount='',due='',issue='',account='',holder='';
 if(company==='MetroGAS'){
@@ -78,35 +62,10 @@ if(!holder){
 }
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
-if(company==='Edesur'){
-  const totalLine=lines.find(x=>/TOTAL\s*(?:A\s*)?PAGAR\s*\(\s*1[°º]?\s*vencimiento\s*\)/i.test(x))||lines.find(x=>/^TOTAL:/i.test(x));
-  if(totalLine)amount=parseAmount(totalLine);
-  const firstDue=lines.find(x=>/1[°º]?\s*Vencimiento/i.test(x));
-  if(firstDue)due=parseDate(firstDue);
-  const issueLine=lines.find(x=>/Capital Federal\s+\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/i.test(x));
-  if(issueLine){
-    const im=issueLine.match(/Capital Federal\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i);
-    if(im)issue=parseDate(im[1]);
-  }
-  const clientLine=lines.find(x=>/Cliente\s*:/i.test(x));
-  if(clientLine){
-    const cm=clientLine.match(/Cliente\s*:\s*([0-9]{6,12})/i);
-    if(cm)account=cm[1];
-  }
-  if(!account){
-    const cm=clean.match(/Cliente\s*:\s*([0-9]{6,12})/i);
-    if(cm)account=cm[1];
-  }
-  const holderLine=lines.find(x=>/Cliente\s*:\s*[0-9]{6,12}/i.test(x)&&/[A-ZÁÉÍÓÚÑ]/i.test(x.split(/Cliente\s*:/i)[0]));
-  if(holderLine){
-    const before=holderLine.split(/Cliente\s*:/i)[0].trim().replace(/\s+/g,' ');
-    if(before)holder=before;
-  }
-}else{
-  let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
-  const vd=lines.find(x=>/VENCIMIENTO/i.test(x));if(vd)due=parseDate(vd);
-  const em=lines.find(x=>/EMISI[ÓO]N/i.test(x));if(em)issue=parseDate(em);
-  const ac=lines.find(x=>/N[ÚU]MERO.*CLIENTE|N[ÚU]MERO.*CUENTA/i.test(x));if(ac){const mm=ac.match(/[0-9]{6,}/);if(mm)account=mm[0]}
+let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
+const vd=lines.find(x=>/VENCIMIENTO/i.test(x));if(vd)due=parseDate(vd);
+const em=lines.find(x=>/EMISI[ÓO]N/i.test(x));if(em)issue=parseDate(em);
+const ac=lines.find(x=>/N[ÚU]MERO.*CLIENTE|N[ÚU]MERO.*CUENTA/i.test(x));if(ac){const mm=ac.match(/[0-9]{6,}/);if(mm)account=mm[0]}
 }
 return {company,service,amount,due,issue,account,holder}
 }
