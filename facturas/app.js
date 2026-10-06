@@ -77,10 +77,10 @@ if(company==='Edesur'){
   const issueMatch=clean.match(/Capital Federal\\s+(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{4})/i);
   if(issueMatch)issue=parseDate(issueMatch[1]);
 
-  const firstDue=clean.match(/1[°º]\\s*Vencimiento\\s*:\\s*(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{4})/i);
+  const firstDue=clean.match(/1\\s*[°º]\\s*Vencimiento\\s*:\\s*(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{4})/i);
   if(firstDue)due=parseDate(firstDue[1]);
 
-  const totalMatch=clean.match(/TOTAL\\s+A\\s+PAGAR\\s*\\(\\s*1[°º]\\s*vencimiento\\s*\\)\\s*\\$\\s*([0-9.,]+)/i);
+  const totalMatch=clean.match(/TOTAL\\s+A\\s+PAGAR\\s*\\(\\s*1\\s*[°º]\\s*vencimiento\\s*\\)\\s*\\$\\s*([0-9.,]+)/i);
   if(totalMatch){
     const numeric=Number(totalMatch[1].replace(/,/g,''));
     if(Number.isFinite(numeric)){
