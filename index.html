@@ -54,9 +54,9 @@ function dateLabel(d){const [y,m,day]=d.split('-');return `${day}/${m}/${y}`}
 const MONTH_KEY='2026-10';
 async function loadIncomes(){
   if(!currentSession)return;
-  const {data,error}=await client.from('income_settings_monthly').select('*').eq('month_key',MONTH_KEY).maybeSingle();
+  const {data,error}=await client.from('income_settings').select('*').eq('id',1).maybeSingle();
   if(error){
-    console.error('income_settings_monthly select error:',error);
+    console.error('income_settings select error:',error);
     const detalle=[error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
     showMessage('incomeStatus','ERROR DE SUPABASE AL CARGAR SUELDOS: '+detalle,true);
     return;
@@ -153,7 +153,7 @@ async function leaveApp(){currentSession=null;expenses=[];if(liveChannel){await 
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();showMessage('authStatus','Ingresando…');const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;const {data,error}=await client.auth.signInWithPassword({email,password});if(error){showMessage('authStatus','No pudimos iniciar sesión. Revisá el correo y la contraseña.',true);return}showMessage('authStatus','');if(data.session)await enterApp(data.session)});
 document.getElementById('signup').addEventListener('click',async()=>{const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;if(!email||password.length<8){showMessage('authStatus','Ingresá un correo y una contraseña de al menos 8 caracteres.',true);return}showMessage('authStatus','Creando cuenta…');const emailRedirectTo=window.location.origin+window.location.pathname;const {data,error}=await client.auth.signUp({email,password},{emailRedirectTo});if(error){showMessage('authStatus','No se pudo crear la cuenta. Probá iniciar sesión o revisá la configuración del correo.',true);return}if(data.session){showMessage('authStatus','Cuenta creada.');await enterApp(data.session)}else showMessage('authStatus','Cuenta creada. Revisá tu correo para confirmarla y después iniciá sesión.')});
 document.getElementById('signout').addEventListener('click',async()=>{await client.auth.signOut();await leaveApp()});
-document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('income_settings_monthly').upsert({month_key:MONTH_KEY,your_income:your,her_income:her,updated_at:new Date().toISOString()},{onConflict:'month_key'});if(error){
+document.getElementById('incomeForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentSession)return;const your=parseMoney(document.getElementById('yourIncome').value),her=parseMoney(document.getElementById('herIncome').value);if(your<=0||her<=0){showMessage('incomeStatus','Ingresá los dos sueldos con valores mayores a cero.',true);return}const {error}=await client.from('income_settings').upsert({id:1,your_income:your,her_income:her,updated_at:new Date().toISOString()},{onConflict:'id'});if(error){
   console.error('income_settings upsert error:', error);
   const detalle = [error.message,error.code,error.details,error.hint].filter(Boolean).join(' | ');
   showMessage('incomeStatus','ERROR DE SUPABASE: '+detalle,true);
