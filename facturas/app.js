@@ -25,11 +25,20 @@ m=clean.match(/N[úu]mero\s+de\s+cliente\s*([0-9]{8,})/i);if(m)account=m[1];
    La estructura real es: MetroGAS S.A. -> número de referencia (12 dígitos)
    -> titular -> domicilio. Por eso no buscamos "la primera palabra en mayúsculas",
    que podía devolver "Código". */
-const mg=clean.match(/METROGAS\s+S\.A\.[\s\S]*?\b[0-9]{8,}\b\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .'-]{4,}?)(?=\s+(?:Espora|[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[0-9]{1,5}\b))/i);
-if(mg)holder=mg[1].trim();
-if(!holder){
-  const mg2=clean.match(/METROGAS\s+S\.A\.[\s\S]*?\b[0-9]{8,}\b\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .'-]{4,})\s+(?=[A-Z][a-záéíóúñ]+\s+\d)/i);
-  if(mg2)holder=mg2[1].trim();
+const lines=clean.split(/\\n+/).map(x=>x.trim()).filter(Boolean);
+const metroIndex=lines.findIndex(x=>/METROGAS\\s+S\\.A\\./i.test(x));
+if(metroIndex>=0){
+  const section=lines.slice(metroIndex,Math.min(lines.length,metroIndex+12));
+  const refIndex=section.findIndex(x=>/\\b\\d{8,}\\b/.test(x));
+  if(refIndex>=0){
+    const after=section.slice(refIndex).join(' ');
+    const hm=after.match(/\\b\\d{8,}\\b\\s+([A-ZÁÉÍÓÚÑ]+(?:\\s+[A-ZÁÉÍÓÚÑ]+){1,5})(?=\\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\\s+\\d{1,5}\\b)/i);
+    if(hm)holder=hm[1].trim();
+    if(!holder){
+      const hm2=after.match(/\\b\\d{8,}\\b\\s+([A-ZÁÉÍÓÚÑ]+(?:\\s+[A-ZÁÉÍÓÚÑ]+){1,5})\\b/i);
+      if(hm2&&!/^(CODIGO|CÓDIGO|CLIENTE|CUENTA|NUMERO|NÚMERO)$/i.test(hm2[1]))holder=hm2[1].trim();
+    }
+  }
 }
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
@@ -40,7 +49,7 @@ const ac=lines.find(x=>/N[ÚU]MERO.*CLIENTE|N[ÚU]MERO.*CUENTA/i.test(x));if(ac)
 }
 return {company,service,amount,due,issue,account,holder}
 }
-async function extractPdf(file){const buf=await file.arrayBuffer();if(!window.pdfjsLib)throw new Error('No se pudo cargar el lector PDF');const pdf=await window.pdfjsLib.getDocument({data:buf,disableWorker:true}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const c=await page.getTextContent();text+=c.items.map(x=>x.str).join(' ')+'\n'}if(text.replace(/\s/g,'').length>80)return text;$('reading').textContent='⏳ El PDF es una imagen. Aplicando OCR...';let ocr='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const viewport=page.getViewport({scale:2});const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);const ctx=canvas.getContext('2d');await page.render({canvasContext:ctx,viewport}).promise;const r=await Tesseract.recognize(canvas,'spa',{logger:m=>{if(m.status==='recognizing text')$('reading').textContent='⏳ OCR página '+i+' de '+pdf.numPages+'...'}});ocr+=r.data.text+'\n'}return ocr}
+async function extractPdf(file){const buf=await file.arrayBuffer();if(!window.pdfjsLib)throw new Error('No se pudo cargar el lector PDF');const pdf=await window.pdfjsLib.getDocument({data:buf,disableWorker:true}).promise;let text='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const c=await page.getTextContent();const items=c.items.map(x=>({str:(x.str||'').trim(),x:x.transform?.[4]||0,y:x.transform?.[5]||0})).filter(x=>x.str);items.sort((a,b)=>b.y-a.y||a.x-b.x);const rows=[];for(const item of items){let row=rows.find(r=>Math.abs(r.y-item.y)<3);if(!row){row={y:item.y,items:[]};rows.push(row)}row.items.push(item)}rows.sort((a,b)=>b.y-a.y);text+=rows.map(r=>r.items.sort((a,b)=>a.x-b.x).map(x=>x.str).join(' ')).join('\\n')+'\\n'}if(text.replace(/\s/g,'').length>80)return text;$('reading').textContent='⏳ El PDF es una imagen. Aplicando OCR...';let ocr='';for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const viewport=page.getViewport({scale:2});const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);const ctx=canvas.getContext('2d');await page.render({canvasContext:ctx,viewport}).promise;const r=await Tesseract.recognize(canvas,'spa',{logger:m=>{if(m.status==='recognizing text')$('reading').textContent='⏳ OCR página '+i+' de '+pdf.numPages+'...'}});ocr+=r.data.text+'\n'}return ocr}
 async function extractImage(file){const r=await Tesseract.recognize(file,'spa');return r.data.text}
 async function readFile(file){$('reading').classList.remove('hidden');$('dropzone').classList.add('hidden');$('reading').textContent='⏳ Analizando factura...';try{const text=file.type==='application/pdf'?await extractPdf(file):await extractImage(file);const data=analyzeText(text);if(data.company)$('company').value=data.company;if(data.service)$('service').value=data.service;if(data.amount)$('amount').value='$'+data.amount;if(data.due)$('dueDate').value=data.due;if(data.issue)$('issueDate').value=data.issue;if(data.account)$('accountNumber').value=data.account;if(data.holder)$('holderName').value=data.holder;invoiceFile=file;$('fileInfo').textContent='Factura seleccionada: '+file.name;$('reading').textContent='✓ Datos extraídos. Revisalos antes de guardar.'}catch(e){console.error(e);$('reading').textContent='No se pudo leer automáticamente. Error: '+(e?.message||e)+'';invoiceFile=file;$('fileInfo').textContent='Factura seleccionada: '+file.name}}
 async function uploadFile(file,folder){if(!file)return null;const ext=file.name.split('.').pop().toLowerCase();const path=folder+'/'+crypto.randomUUID()+'.'+ext;const {error}=await db.storage.from('household-bills').upload(path,file,{upsert:false});if(error)throw error;const {data}=db.storage.from('household-bills').getPublicUrl(path);return {path,url:data.publicUrl}}
