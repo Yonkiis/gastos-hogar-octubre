@@ -21,7 +21,7 @@ let m=clean.match(/TOTAL A PAGAR\s*\$?\s*([0-9.]+,[0-9]{2})/i);if(m)amount=m[1];
 m=clean.match(/FECHA DE VENCIMIENTO\s*:\s*([0-9\/.-]+)/i);if(m)due=parseDate(m[1]);
 m=clean.match(/FECHA DE EMISI[ÓO]N\s*:\s*([0-9\/.-]+)/i);if(m)issue=parseDate(m[1]);
 m=clean.match(/N[úu]mero de cliente\s*\n?\s*([0-9]{8,})/i);if(m)account=m[1];
-m=clean.match(/\b\d{8,}\s*\n\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{4,})/i);if(m)holder=m[1].trim();
+const holderLines=clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);const ci=holderLines.findIndex(x=>/N[ÚU]MERO\s+DE\s+CLIENTE/i.test(x));if(ci>=0){for(let j=ci+1;j<Math.min(ci+5,holderLines.length);j++){const line=holderLines[j];if(/^[0-9 .-]+$/.test(line))continue;if(/[A-ZÁÉÍÓÚÑ]{3,}/i.test(line)){holder=line.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñüÜ .'-]/g,'').trim();if(holder.length>=5)break}}}if(!holder){m=clean.match(/\b\d{8,}\s*\n\s*([A-Za-zÁÉÍÓÚÑáéíóúñüÜ][A-Za-zÁÉÍÓÚÑáéíóúñüÜ .'-]{4,})/i);if(m)holder=m[1].trim();}
 }else{
 const lines=clean.split('\n').map(x=>x.trim()).filter(Boolean);
 let i=lines.findIndex(x=>/TOTAL A PAGAR/i.test(x));if(i>=0)amount=parseAmount(lines[i]);
