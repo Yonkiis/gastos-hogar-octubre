@@ -119,35 +119,16 @@ async function readFile(file){
   $('dropzone').classList.add('hidden');
   $('reading').textContent='⏳ Analizando factura argentina...';
   try{
+    // Para PDFs argentinos usamos primero Zerodoc, que devuelve campos
+    // estructurados. El lector local queda como respaldo si el servicio falla.
     let result;
-
-    // Primero usamos el lector especializado para Argentina.
-    // Esto evita depender de modelos pensados para facturas UK/EU.
     try{
+      $('reading').textContent='⏳ Analizando factura con lector inteligente...';
+      result=await readViaZerodoc(file);
+    }catch(zerodocError){
+      console.warn('Zerodoc no disponible; usando lector argentino local:',zerodocError);
       $('reading').textContent='⏳ Leyendo formato argentino...';
       result=await readInvoiceFile(file,msg=>{$('reading').textContent='⏳ '+msg+'...'});
-    }catch(localError){
-      console.warn('Lector argentino no disponible; usando Zerodoc:',localError);
-      $('reading').textContent='⏳ Enviando factura al lector inteligente...';
-      result=await readViaZerodoc(file);
-    }
-
-    // Si el lector argentino reconoce la empresa pero deja campos faltantes,
-    // intentamos Zerodoc solamente como complemento.
-    const f0=result.fields||{};
-    const missing=['holder','account','amount','issue','due'].some(k=>!f0[k]?.value);
-    if(missing && result.source!=='zerodoc'){
-      try{
-        $('reading').textContent='⏳ Verificando datos faltantes...';
-        const z=await readViaZerodoc(file);
-        for(const key of ['company','service','holder','account','amount','issue','due']){
-          if(!result.fields?.[key]?.value && z.fields?.[key]?.value){
-            result.fields[key]=z.fields[key];
-          }
-        }
-      }catch(e){
-        console.warn('Complemento Zerodoc no disponible:',e);
-      }
     }
 
     const f=result.fields||{};
@@ -161,13 +142,12 @@ async function readFile(file){
 
     invoiceFile=file;
     renderAnalysis(result);
-    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source||'lector argentino');
+    $('fileInfo').textContent='Documento seleccionado: '+file.name+' · '+(result.source||'lector inteligente');
 
-    if(result.validation?.ok){
-      $('reading').textContent='✓ Factura argentina leída. Revisá los datos antes de guardar.';
-    }else{
-      $('reading').textContent='⚠ Lectura parcial. Revisá los campos indicados antes de guardar.';
-    }
+    const complete=!!(f.company?.value&&f.amount?.value&&f.due?.value&&f.issue?.value&&f.account?.value&&f.holder?.value);
+    $('reading').textContent=complete
+      ? '✓ Factura argentina leída. Revisá los datos antes de guardar.'
+      : '⚠ Lectura parcial. Revisá los campos indicados antes de guardar.';
   }catch(e){
     console.error(e);
     invoiceFile=file;
