@@ -181,7 +181,7 @@ function parseMetroGas(text){
     if(clientLabel>=0){
       for(let i=clientLabel+1;i<Math.min(lines.length,clientLabel+6);i++){
         const x=lines[i].replace(/\s+/g,'').trim();
-        if(/^\\d{6,14}$/.test(x)){
+        if(/^\d{6,14}$/.test(x)){
           out.account=candidate(x,.99,'Número debajo de la etiqueta Número de cliente','MetroGAS');
           break;
         }
@@ -329,4 +329,20 @@ export async function readInvoiceFile(file,onProgress=()=>{}){
   fields=merge(fields,parsed);
   const validation=validate(fields);
   return {file,text:doc.text,source:doc.source,pages:doc.pages,fields,validation};
+}
+
+
+/* Export interno para pruebas sintéticas. No modifica el flujo de producción. */
+export function __parseTextForTest(text){
+  const detected=detectCompany(text);
+  const base={
+    company:candidate(detected.company,detected.confidence,'Detección de empresa','detector'),
+    service:candidate(detected.service,detected.confidence,'Detección de servicio','detector')
+  };
+  const parsed=detected.company==='Edesur'?parseEdesur(text)
+    :detected.company==='MetroGAS'?parseMetroGas(text)
+    :detected.company==='ARLO'?parseArlo(text)
+    :parseGeneric(text);
+  const fields=merge(base,parsed);
+  return {detected,fields,validation:validate(fields)};
 }
