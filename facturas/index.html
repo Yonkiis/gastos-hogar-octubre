@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
-<div id="appVersion" style="position:fixed;top:8px;right:10px;z-index:9999;background:#111827;color:#fff;padding:5px 9px;border-radius:8px;font:700 11px Arial">APLICACIÓN FACTURAS · V26</div>
+<div id="appVersion" style="position:fixed;top:8px;right:10px;z-index:9999;background:#111827;color:#fff;padding:5px 9px;border-radius:8px;font:700 11px Arial">APLICACIÓN FACTURAS · V27</div>
 <header><div><h1>Facturas del mes</h1><p>Control simple de servicios, vencimientos y pagos</p></div><button id="uploadTop">+ Cargar factura</button></header>
 <main>
 <section class="toolbar"><button id="prevMonth">‹</button><div><b id="monthTitle"></b><input id="monthPicker" type="month"></div><button id="nextMonth">›</button></section>
@@ -34,5 +34,5 @@
 <div id="fileInfo" class="fileInfo"></div><label style="display:block;margin-top:12px;font-size:13px;font-weight:700">Comprobante de pago (opcional)<input id="receiptInput" type="file" accept=".pdf,image/*" style="display:block;margin-top:6px"></label><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Factura</h2><button id="closeView">×</button></div><iframe id="viewer" title="Factura"></iframe></div></div>
-<script type="module" src="app.js?v=26"></script>
+<script type="module" src="app.js?v=27"></script>
 </body></html>
