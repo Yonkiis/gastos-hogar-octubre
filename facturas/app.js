@@ -129,7 +129,7 @@ async function readFile(file){
     }
     // Zerodoc puede identificar la empresa pero dejar campos vacíos en facturas argentinas.
     // En ese caso completamos únicamente los campos faltantes con el lector local.
-    if(result.source==='zerodoc' && result.text){
+    if(result.source==='zerodoc'){
       const missing=['holder','account','amount','issue','due'];
       const hasMissing=missing.some(k=>!result.fields?.[k]?.value);
       if(hasMissing){
