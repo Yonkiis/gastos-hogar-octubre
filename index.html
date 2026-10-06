@@ -40,14 +40,6 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <div><h1>Gastos compartidos</h1><p>Reparto proporcional según sueldo</p></div>
 <div><button id="logout" class="delete">Salir</button></div>
 </div>
-<section class="panel">
-<h2>Mes</h2>
-<form id="monthForm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<button type="button" id="prevMonth" class="btn">← Anterior</button>
-<input id="monthPicker" type="month" required>
-<button type="button" id="nextMonth" class="btn">Siguiente →</button>
-</form>
-</section>
 
 <section class="panel">
 <h2>Ingresos del hogar · <span id="monthTitle"></span></h2>
@@ -98,6 +90,14 @@ h1,h2{color:#183153}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 <b>Total de gastos del mes: <span id="total">$0</span></b>
 </section>
 
+<section class="panel">
+<h2>Mes</h2>
+<form id="monthForm" style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap">
+<button type="button" id="prevMonth" class="btn">← Anterior</button>
+<input id="monthPicker" type="month" required>
+<button type="button" id="nextMonth" class="btn">Siguiente →</button>
+</form>
+</section>
 </main>
 <script src="./supabase.js?v=7"></script>
 <script src="./app.js?v=4"></script>
