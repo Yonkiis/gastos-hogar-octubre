@@ -1,0 +1,10 @@
+{
+  "name": "Gastos Compartidos",
+  "short_name": "Gastos",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#183153",
+  "lang": "es-AR",
+  "icons": []
+}
