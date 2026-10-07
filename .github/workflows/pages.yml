@@ -28,7 +28,7 @@ jobs:
       - name: Subir sitio
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: facturas
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
