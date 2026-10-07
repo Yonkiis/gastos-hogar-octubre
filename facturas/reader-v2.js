@@ -132,6 +132,12 @@ function parseEdesur(text){
   );
   if(due) out.due=candidate(dateISO(due[1]),.99,'Primer vencimiento','Edesur');
 
+  const invoice=first(
+    t.match(/(?:FACTURA|N[°º]\s*DE\s*FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([0-9]{1,5}[- ]?[0-9]{6,10})/i),
+    t.match(/([0-9]{4,5}-[0-9]{6,10})/)
+  );
+  if(invoice) out.invoice=candidate(invoice[1],.95,'Número de factura/comprobante','Edesur');
+
   const amount=first(
     t.match(/TOTAL\s+A\s+PAGAR\s*\(\s*1\s*[°ºo]\s*vencimiento\s*\)\s*\$\s*([0-9.,]+)/i),
     t.match(/Total a pagar hasta\s*\d{1,2}[\/-]\d{1,2}[\/-]\d{4}\s*\$\s*([0-9.,]+)/i)
@@ -256,6 +262,12 @@ function parseArlo(text){
 
 function parseGeneric(text){
   const t=normalize(text), lines=linesOf(text), out={};
+
+  const invoice=first(
+    t.match(/(?:FACTURA|N[°º]\s*DE\s*FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([0-9]{1,5}[- ]?[0-9]{6,10})/i),
+    t.match(/([0-9]{4,5}-[0-9]{6,10})/)
+  );
+  if(invoice) out.invoice=candidate(invoice[1],.75,'Número de factura/comprobante','generic');
 
   const total=first(
     t.match(/TOTAL\s+A\s+PAGAR[^\d$]{0,40}\$?\s*([0-9.,]+)/i),
