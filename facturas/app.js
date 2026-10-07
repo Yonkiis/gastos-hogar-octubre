@@ -13,6 +13,10 @@ const dateAR=s=>s?new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'2-digit'
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 function nextMonth(m){const d=new Date(m+'-01T12:00:00');d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7);}
 function parseMoney(v){return Number(String(v).replace(/\$/g,'').replace(/\./g,'').replace(',','.').replace(/\s/g,''))||0;}
+function formatAmountInput(v){
+  const n=parseMoney(v);
+  return n?money(n):'';
+}
 
 function setMonth(){
   const d=new Date(currentMonth+'-15T12:00:00');
@@ -25,7 +29,7 @@ function resetForm(){
   editingId=null; invoiceFile=null; receiptFile=null; existingInvoicePath=null; existingReceiptPath=null;
   $('modalTitle').textContent='Nueva factura';
   $('service').value='Luz';
-  ['company','amount','dueDate','issueDate','accountNumber','holderName'].forEach(id=>$(id).value='');
+  ['company','amount','dueDate','accountNumber','holderName'].forEach(id=>$(id).value='');
   $('status').value='Pendiente';
   $('fileInfo').textContent='';
   $('receiptInput').value='';
@@ -200,6 +204,8 @@ $('fileInput').onchange=e=>{
     }
   }
 };
+$('amount').addEventListener('blur',e=>{e.target.value=formatAmountInput(e.target.value);});
+$('amount').addEventListener('focus',e=>{if(e.target.value)e.target.value=parseMoney(e.target.value).toString();});
 $('receiptInput').onchange=e=>{
   receiptFile=e.target.files[0]||null;
   if(receiptFile)$('fileInfo').textContent+=( $('fileInfo').textContent?' · ':'')+'Comprobante seleccionado: '+receiptFile.name;
