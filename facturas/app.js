@@ -104,7 +104,7 @@ async function saveBill(){
   const payload={
    bill_month:currentMonth+'-01',service:$('service').value,company,invoice_number:$('invoiceNumber').value.trim(),amount,
    due_date:$('dueDate').value||null,issue_date:$('issueDate').value||null,account_number:$('accountNumber').value.trim(),
-   holder_name:$('holderName').value.trim(),period_start:$('periodStart').value||null,period_end:$('periodEnd').value||null,status,
+   holder_name:$('holderName').value.trim(),status,
    invoice_file_path:invoicePath,receipt_file_path:receiptPath,payment_date:$('paymentDate').value||null,
    payment_amount:parseMoney($('paymentAmount').value)||null,payment_method:$('paymentMethod').value||null,
    ocr_source:ocrResult?.source||null,ocr_confidence:ocrResult?Math.min(...Object.values(ocrResult.fields||{}).filter(x=>x?.confidence).map(x=>x.confidence)):null,
@@ -127,7 +127,7 @@ async function editBill(id){
  const {data,error}=await db.from('household_bills').select('*').eq('id',id).single();if(error||!data){alert('No se pudo abrir la factura.');return;}
  editingId=id;invoiceFile=null;receiptFile=null;ocrResult=null;existingInvoicePath=data.invoice_file_path||null;existingReceiptPath=data.receipt_file_path||null;
  $('modalTitle').textContent='Editar factura';setVal('service',data.service||'Otro');setVal('company',data.company);setVal('invoiceNumber',data.invoice_number);setVal('amount',data.amount?money(data.amount):'');
- ['dueDate','issueDate','paymentDate'].forEach(id=>setVal(id,data[{dueDate:'due_date',issueDate:'issue_date',periodStart:'period_start',periodEnd:'period_end',paymentDate:'payment_date'}[id]]||''));
+ ['dueDate','issueDate','paymentDate'].forEach(id=>setVal(id,data[{dueDate:'due_date',issueDate:'issue_date',paymentDate:'payment_date'}[id]]||''));
  setVal('accountNumber',data.account_number);setVal('holderName',data.holder_name);setVal('status',data.status||'Pendiente');setVal('paymentAmount',data.payment_amount?money(data.payment_amount):'');setVal('paymentMethod',data.payment_method||'');
  $('fileInput').value='';$('receiptInput').value='';$('fileInfo').innerHTML=(existingInvoicePath?'<button type="button" class="linkBtn" id="openExistingInvoice">Ver factura guardada</button>':'')+(existingReceiptPath?'<button type="button" class="linkBtn" id="openExistingReceipt">Ver comprobante guardado</button>':'');
  $('openExistingInvoice')?.addEventListener('click',()=>viewFile(existingInvoicePath));$('openExistingReceipt')?.addEventListener('click',()=>viewFile(existingReceiptPath));$('modal').classList.remove('hidden');
