@@ -3,6 +3,7 @@ import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build
 import { readInvoiceFile } from './reader-v2.js?v=51';
 
 window.pdfjsLib=pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 
 const SUPABASE_URL='https://vbhvitwbcbymfafnfmdw.supabase.co';
 const SUPABASE_KEY='sb_publishable_TOeRbvLnMA50JjqpO4tUNQ_s7rAvLmM';
