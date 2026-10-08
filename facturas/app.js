@@ -245,7 +245,7 @@ async function loadBills(){
  for(const b of data||[]){const n=Number(b.amount)||0;total+=n;if(b.status==='Pagada')paid+=n;else{pending+=n;if(b.due_date&&b.due_date>=today)upcoming++;}}
  const {data:expensasTotal}=await db.from('household_bills').select('amount,status,due_date').eq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
  for(const e of expensasTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else{pending+=n;if(e.due_date&&e.due_date>=today)upcoming++;}}
- const {data:directTotal}=await db.from('household_bills').select('amount,status').in('service',['Seguro de auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
+ const {data:directTotal}=await db.from('household_bills').select('amount,status').in('service',['Seguro de auto','Seguro del auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
  for(const e of directTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else pending+=n;}
  $('totalAmount').textContent=money(total);$('paidAmount').textContent=money(paid);$('pendingAmount').textContent=money(pending);$('upcomingCount').textContent=String(upcoming);
  if(!data?.length){$('billList').innerHTML='<div class="empty">Todavía no hay facturas cargadas este mes.</div>';return;}
