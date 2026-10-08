@@ -7,8 +7,22 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
-<div id="appVersion">FACTURAS · V50</div>
-<header><div><h1>Facturas del mes</h1><p>Control de servicios, vencimientos y pagos</p></div><button id="uploadTop">+ Cargar factura</button></header>
+<div id="authGate" class="authGate">
+  <div class="authCard">
+    <div class="authLogo">FACTURAS</div>
+    <h1>Facturas del mes</h1>
+    <p id="authSubtitle">Ingresá para acceder a tus facturas y comprobantes.</p>
+    <form id="authForm">
+      <label>Email<input id="authEmail" type="email" autocomplete="email" required></label>
+      <label>Contraseña<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required></label>
+      <button id="authSubmit" type="submit">Ingresar</button>
+    </form>
+    <button id="authModeBtn" class="authLink" type="button">Crear una cuenta</button>
+    <div id="authMessage" class="authMessage"></div>
+  </div>
+</div>
+<div id="appVersion">FACTURAS · V51</div>
+<header><div><h1>Facturas del mes</h1><p>Control de servicios, vencimientos y pagos</p></div><div class="headerActions"><span id="userEmail"></span><button id="logoutBtn" class="logoutBtn">Cerrar sesión</button><button id="uploadTop">+ Cargar factura</button></div></header>
 <main>
 <section class="toolbar"><button id="prevMonth">‹</button><div><b id="monthTitle"></b><input id="monthPicker" type="month"></div><button id="nextMonth">›</button></section>
 <section class="cards">
@@ -34,5 +48,5 @@
 <div id="fileInfo" class="fileInfo"></div><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Documento</h2><button id="closeView">×</button></div><iframe id="viewer" title="Documento"></iframe></div></div>
-<script type="module" src="app.js?v=50"></script>
+<script type="module" src="app.js?v=51"></script>
 </body></html>
