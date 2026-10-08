@@ -247,6 +247,12 @@ function parseArlo(text){
   const lines=linesOf(t);
   const out={};
 
+  const liquidation=first(
+    t.match(/N[°º]\.?\s*Liq\.?\s*[:#-]?\s*([A-Z0-9-]+)/i),
+    t.match(/N[°º]\.?\s*Liquidaci[óo]n\s*[:#-]?\s*([A-Z0-9-]+)/i)
+  );
+  if(liquidation) out.invoice=candidate(liquidation[1],.99,'N° Liq. de ARLO','ARLO');
+
   const account=first(
     t.match(/N[°º]\.?\s*Liq\.?\s*[0-9\s-]+\s+Cuenta\s+(\d{5,12})/i),
     t.match(/Cuenta\s*[:#-]?\s*(\d{5,12})/i)
