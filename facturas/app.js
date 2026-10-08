@@ -185,10 +185,10 @@ async function loadExpensas(){
  $('expensasList').innerHTML=data.map(b=>'<article class="bill expensaBill"><div><b>'+esc(b.holder_name||'6°C')+'</b><small>U.F. '+esc(b.invoice_number||'17 (C.14)')+' · '+esc(b.account_number||'6°C')+'</small></div><div><small>Sin extraordinaria</small><b>'+money(b.ordinary_amount||b.amount)+'</b></div><div><small>Con extraordinaria</small><b>'+money(b.amount)+'</b></div><div><small>Vence</small><b>'+dateAR(b.due_date)+'</b></div><div><span class="status '+(b.status==='Pagada'?'paid':'')+'">'+esc(b.status)+'</span></div><div class="billActions"><button data-exp-action="toggle" data-id="'+b.id+'" data-status="'+b.status+'">'+(b.status==='Pagada'?'Pendiente':'Pagar')+'</button>'+(b.invoice_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.invoice_file_path)+'">Liquidación</button>':'')+(b.receipt_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
 }
 async function loadDirect(){
- const {data,error}=await db.from('household_bills').select('id,amount,status,receipt_file_path,bill_month').eq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('created_at',{ascending:false});
+ const {data,error}=await db.from('household_bills').select('id,amount,status,receipt_file_path,bill_month,service').in('service',['Seguro de auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('created_at',{ascending:false});
  if(error){$('directList').innerHTML='<div class="empty">No se pudo cargar el seguro del auto.</div>';return;}
  if(!data?.length){$('directList').innerHTML='<div class="empty">Todavía no hay un pago registrado este mes.</div>';return;}
- $('directList').innerHTML=data.map(b=>'<article class="bill directBill"><div><b>Seguro del auto</b><small>Pago directo</small></div><div><small>Importe</small><b>'+money(b.amount)+'</b></div><div><small>Estado</small><span class="status paid">Pagada</span></div><div class="billActions">'+(b.receipt_file_path?'<button data-direct-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
+ $('directList').innerHTML=data.map(b=>'<article class="bill directBill"><div><b>'+esc(b.service==='Nafta'?'⛽ Nafta':'🚗 Seguro del auto')+'</b><small>Pago directo</small></div><div><small>Importe</small><b>'+money(b.amount)+'</b></div><div><small>Estado</small><span class="status paid">Pagada</span></div><div class="billActions">'+(b.receipt_file_path?'<button data-direct-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
 }
 async function saveDirect(){
  const amount=parseMoney($('directAmount').value);
@@ -196,7 +196,7 @@ async function saveDirect(){
  $('saveDirectBtn').disabled=true;
  try{
   const receiptPath=directReceiptFile?await uploadFile(directReceiptFile,'receipts'):null;
-  const payload={bill_month:currentMonth+'-01',service:'Seguro de auto',company:'Pago directo',amount,status:'Pagada',receipt_file_path:receiptPath,updated_at:new Date().toISOString()};
+  const service=$('directType').value;const payload={bill_month:currentMonth+'-01',service,company:'Pago directo',amount,status:'Pagada',receipt_file_path:receiptPath,updated_at:new Date().toISOString()};
   const {error}=await db.from('household_bills').insert(payload);
   if(error)throw error;
   closeDirect();await loadBills();await loadDirect();
@@ -205,20 +205,20 @@ async function saveDirect(){
 }
 function resetDirectForm(){
  directReceiptFile=null;
- $('directAmount').value='';$('directReceiptInput').value='';$('directFileInfo').textContent='';
+ $('directType').value='Seguro del auto';$('directAmount').value='';$('directReceiptInput').value='';$('directFileInfo').textContent='';$('directModalTitle').textContent='Registrar pago';
 }
 function openDirect(){resetDirectForm();$('directModal').classList.remove('hidden');}
 function closeDirect(){$('directModal').classList.add('hidden');}
 
 async function loadBills(){
- const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').neq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
+ const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').neq('service','Seguro de auto').neq('service','Nafta').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
  const data=(rawData||[]).filter(b=>String(b.service||'').trim().toLowerCase()!=='expensas');
  if(error){$('billList').innerHTML='<div class="empty">No se pudieron cargar las facturas.</div>';return;}
  let total=0,paid=0,pending=0,upcoming=0;const today=new Date().toISOString().slice(0,10);
  for(const b of data||[]){const n=Number(b.amount)||0;total+=n;if(b.status==='Pagada')paid+=n;else{pending+=n;if(b.due_date&&b.due_date>=today)upcoming++;}}
  const {data:expensasTotal}=await db.from('household_bills').select('amount,status,due_date').eq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
  for(const e of expensasTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else{pending+=n;if(e.due_date&&e.due_date>=today)upcoming++;}}
- const {data:directTotal}=await db.from('household_bills').select('amount,status').eq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
+ const {data:directTotal}=await db.from('household_bills').select('amount,status').in('service',['Seguro de auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
  for(const e of directTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else pending+=n;}
  $('totalAmount').textContent=money(total);$('paidAmount').textContent=money(paid);$('pendingAmount').textContent=money(pending);$('upcomingCount').textContent=String(upcoming);
  if(!data?.length){$('billList').innerHTML='<div class="empty">Todavía no hay facturas cargadas este mes.</div>';return;}
