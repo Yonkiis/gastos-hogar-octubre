@@ -16,7 +16,25 @@ const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',mi
 const dateAR=s=>s?new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(s+'T12:00:00')):'—';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const nextMonth=m=>{const d=new Date(m+'-01T12:00:00');d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,7);};
-const parseMoney=v=>Number(String(v??'').replace(/\$/g,'').replace(/\./g,'').replace(',','.').replace(/\s/g,''))||0;
+const parseMoney=v=>{
+ let s=String(v??'').trim().replace(/\$/g,'').replace(/\s/g,'');
+ if(!s)return 0;
+ const hasComma=s.includes(','),hasDot=s.includes('.');
+ if(hasComma&&hasDot){
+  // Si existen ambos separadores, el último es el decimal.
+  if(s.lastIndexOf(',')>s.lastIndexOf('.')) s=s.replace(/\./g,'').replace(',','.');
+  else s=s.replace(/,/g,'');
+ }else if(hasComma){
+  // En formato argentino, la coma seguida de 1-2 dígitos es decimal.
+  s=/,\d{1,2}$/.test(s)?s.replace(',','.'):s.replace(/,/g,'');
+ }else if(hasDot){
+  // Un punto seguido de exactamente 2 dígitos suele ser decimal;
+  // si hay grupos de 3, se interpreta como separador de miles.
+  s=/\.\d{1,2}$/.test(s)?s:s.replace(/\./g,'');
+ }
+ const n=Number(s);
+ return Number.isFinite(n)?n:0;
+};
 const fieldValue=(k)=>ocrResult?.fields?.[k]?.value??'';
 const setVal=(id,v)=>{if($(id)&&v!==undefined&&v!==null)$(id).value=v;};
 
