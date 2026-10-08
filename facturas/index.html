@@ -21,7 +21,7 @@
     <div id="authMessage" class="authMessage"></div>
   </div>
 </div>
-<div id="appVersion">FACTURAS · V51</div>
+<div id="appVersion">FACTURAS · V52</div>
 <header><div><h1>Facturas del mes</h1><p>Control de servicios, vencimientos y pagos</p></div><div class="headerActions"><span id="userEmail"></span><button id="logoutBtn" class="logoutBtn">Cerrar sesión</button><button id="uploadTop">+ Cargar factura</button></div></header>
 <main>
 <section class="toolbar"><button id="prevMonth">‹</button><div><b id="monthTitle"></b><input id="monthPicker" type="month"></div><button id="nextMonth">›</button></section>
@@ -29,6 +29,7 @@
 <div><span>Total del mes</span><strong id="totalAmount">$0</strong></div><div><span>Pagadas</span><strong id="paidAmount">$0</strong></div><div><span>Pendientes</span><strong id="pendingAmount">$0</strong></div><div><span>Próximos vencimientos</span><strong id="upcomingCount">0</strong></div>
 </section>
 <section class="panel"><div class="panelHead"><h2>Facturas</h2><button id="uploadBtn">+ Cargar factura</button></div><div id="billList" class="list"></div></section>
+<section class="panel expensasPanel"><div class="panelHead"><div><h2>🏢 Expensas</h2><p class="sectionHint">Liquidación independiente · se toma únicamente la unidad 6°C</p></div><button id="expensasBtn">+ Cargar expensa</button></div><div id="expensasList" class="list"></div></section>
 </main>
 <div id="modal" class="modal hidden"><div class="modalBox">
 <div class="modalHead"><h2 id="modalTitle">Nueva factura</h2><button id="closeModal">×</button></div>
@@ -46,6 +47,24 @@
 <label>Medio de pago<select id="paymentMethod"><option value="">Seleccionar</option><option>Transferencia</option><option>Mercado Pago</option><option>Débito</option><option>Crédito</option><option>Efectivo</option><option>Otro</option></select></label>
 <label>Comprobante<input id="receiptInput" type="file" accept=".pdf,image/*"></label></div></div>
 <div id="fileInfo" class="fileInfo"></div><div class="actions"><button class="secondary" id="cancelBtn">Cancelar</button><button id="saveBtn">Guardar factura</button></div>
+</div></div>
+
+<div id="expensasModal" class="modal hidden"><div class="modalBox">
+<div class="modalHead"><h2 id="expensasModalTitle">Nueva expensa</h2><button id="closeExpensas">×</button></div>
+<div class="dropzone"><b>Subí la liquidación de expensas</b><span>PDF o imagen · el sistema buscará exclusivamente la unidad 6°C</span><input id="expensasFileInput" type="file" accept=".pdf,image/*"></div>
+<div id="expensasOCRStatus" class="reading hidden"></div><div id="expensasOCRPanel" class="analysisPanel hidden"></div>
+<div class="formgrid">
+<label>U.F.<input id="expensasUF"></label><label>Unidad<input id="expensasUnit" value="6°C"></label>
+<label class="wide">Titular<input id="expensasHolder"></label>
+<label>Expensa ordinaria<input id="expensasOrdinary" inputmode="decimal"></label><label>Expensa extraordinaria<input id="expensasExtraordinary" inputmode="decimal"></label>
+<label>Total a pagar<input id="expensasAmount" inputmode="decimal"></label><label>Vencimiento<input id="expensasDue" type="date"></label>
+<label>Estado<select id="expensasStatus"><option>Pendiente</option><option>Pagada</option></select></label>
+</div>
+<div class="paymentBox"><b>Pago</b><div class="formgrid paymentGrid">
+<label>Fecha de pago<input id="expensasPaymentDate" type="date"></label><label>Importe pagado<input id="expensasPaymentAmount" inputmode="decimal"></label>
+<label>Medio de pago<select id="expensasPaymentMethod"><option value="">Seleccionar</option><option>Transferencia</option><option>Mercado Pago</option><option>Débito</option><option>Crédito</option><option>Efectivo</option><option>Otro</option></select></label>
+<label>Comprobante<input id="expensasReceiptInput" type="file" accept=".pdf,image/*"></label></div></div>
+<div id="expensasFileInfo" class="fileInfo"></div><div class="actions"><button class="secondary" id="cancelExpensas">Cancelar</button><button id="saveExpensasBtn">Guardar expensa</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Documento</h2><button id="closeView">×</button></div><iframe id="viewer" title="Documento"></iframe></div></div>
 <script type="module" src="app.js?v=51"></script>
