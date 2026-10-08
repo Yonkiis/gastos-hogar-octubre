@@ -349,6 +349,37 @@ function merge(base, parsed){
   return out;
 }
 
+
+function parseExpensas(text,fileName=''){
+ const t=normalize(text),lines=linesOf(text),out={};
+ const target=lines.find(x=>/17\s*\(\s*C\.14\s*\)\s*6[°º]\s*C/i.test(x));
+ if(!target) return out;
+ const m=target.match(/^(?:17\s*\(\s*C\.14\s*\))\s*(6[°º]\s*C)\s+(.+?)\s+([0-9]+(?:,[0-9]+)?)\s+([0-9.]+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+6[°º]C\s*$/i);
+ if(!m)return out;
+ const holder=m[2].trim();
+ out.uf=candidate('17 (C.14)',.99,'Fila de la unidad 6°C','Expensas');
+ out.unit=candidate(m[1].replace('º','°'),.99,'Fila de la unidad 6°C','Expensas');
+ out.holder=candidate(holder,.99,'Fila de la unidad 6°C','Expensas');
+ out.ordinary=candidate(moneyAR(m[7]),.99,'Expensa ordinaria de 6°C','Expensas');
+ out.extraordinary=candidate(moneyAR(m[8]),.99,'Expensa extraordinaria de 6°C','Expensas');
+ out.amount=candidate(moneyAR(m[10]),.99,'TOTAL A PAGAR de 6°C','Expensas');
+ const monthMatch=fileName.match(/(?:SETIEMBRE|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE|ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO)/i);
+ const names={ENERO:0,FEBRERO:1,MARZO:2,ABRIL:3,MAYO:4,JUNIO:5,JULIO:6,AGOSTO:7,SETIEMBRE:8,SEPTIEMBRE:8,OCTUBRE:9,NOVIEMBRE:10,DICIEMBRE:11};
+ let y=new Date().getFullYear();
+ if(monthMatch){const mm=names[monthMatch[0].toUpperCase()];out.billMonth=candidate(new Date(y,mm,1).toISOString().slice(0,10),.95,'Mes indicado en el nombre de la liquidación','Expensas');}
+ const dueText=t.match(/ABONARs+ANTESs+DELs+D[IÍ]As+(d{1,2})s+DEs+CADAs+MES/i);
+ if(dueText){let dueMonth=out.billMonth?.value?new Date(out.billMonth.value+'T12:00:00'):new Date();dueMonth.setMonth(dueMonth.getMonth()+1);const d=new Date(dueMonth.getFullYear(),dueMonth.getMonth(),Number(dueText[1]));out.due=candidate(d.toISOString().slice(0,10),.94,'Forma de pago de expensas','Expensas');}
+ return out;
+}
+export async function readExpensasFile(file,onProgress=()=>{}){
+ const doc=await extractDocument(file,onProgress);
+ const fields=parseExpensas(doc.text,file.name);
+ const validation={warnings:[]};
+ if(!fields.unit?.value)validation.warnings.push('No se encontró la fila exacta de la unidad 6°C.');
+ if(!fields.amount?.value)validation.warnings.push('No se pudo confirmar el total a pagar de 6°C.');
+ return {file,text:doc.text,source:doc.source,pages:doc.pages,fields,validation};
+}
+
 export async function extractDocument(file, onProgress=()=>{}){
   if(file.type==='application/pdf'){
     if(!window.pdfjsLib)throw new Error('No se pudo cargar PDF.js');
