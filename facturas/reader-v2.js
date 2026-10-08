@@ -48,6 +48,9 @@ function moneyAR(s){
   if(/\d{1,3}(?:\.\d{3})+,\d{2}$/.test(raw)){
     return Number(raw.replace(/\./g,'').replace(',','.'));
   }
+  // En liquidaciones argentinas, un punto seguido de 3 dígitos suele ser separador de miles.
+  // Ej.: 28.240 -> 28240 y 128.084 -> 128084.
+  if(/^\d{1,3}(?:\.\d{3})+$/.test(raw)) return Number(raw.replace(/\./g,''));
   if(/\d+,\d{2}$/.test(raw)) return Number(raw.replace(',','.'));
   if(/^\d+\.\d{2}$/.test(raw)) return Number(raw);
   const n=Number(raw.replace(/,/g,''));
