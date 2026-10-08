@@ -362,7 +362,7 @@ function parseExpensas(text,fileName=''){
  if(!head)return out;
 
  const holder=head[2].trim();
- const numericText=target.slice(head[0].length);
+ const numericText=target.slice(head[0].length).replace(/\s+6[°º]?\s*C\s*$/i,'');
  const nums=numericText.match(/-?\d+(?:[.,]\d+)?/g)||[];
  // La fila tiene: % | saldo anterior | cobros | deuda | punitorios | ordinaria | extraordinaria | subtotal | total | total dpto.
  // Tomamos siempre las últimas columnas para no confundir importes de otras unidades.
