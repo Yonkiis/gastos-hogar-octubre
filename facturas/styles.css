@@ -12,3 +12,5 @@
 .logoutBtn{background:#374151!important;color:#fff!important;padding:9px 12px!important}
 body.authLocked>header,body.authLocked>main{visibility:hidden}
 @media(max-width:800px){.headerActions{justify-content:flex-end}.headerActions #userEmail{display:none}}
+
+.expensasPanel{margin-top:20px}.sectionHint{margin:4px 0 0;color:#64748b;font-size:12px}.expensaBill{border-left:4px solid #7c3aed}
