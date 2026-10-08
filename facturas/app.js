@@ -72,6 +72,7 @@ async function logout(){
 const $=id=>document.getElementById(id);
 let currentMonth=new Date().toISOString().slice(0,7);
 let expensasFile=null,expensasReceiptFile=null,expensasOCR=null;
+let directReceiptFile=null;
 let editingId=null,invoiceFile=null,receiptFile=null,existingInvoicePath=null,existingReceiptPath=null,ocrResult=null;
 let authMode='login';
 
@@ -104,7 +105,7 @@ const setVal=(id,v)=>{if($(id)&&v!==undefined&&v!==null)$(id).value=v;};
 function setMonth(){
  const d=new Date(currentMonth+'-15T12:00:00');
  $('monthTitle').textContent=new Intl.DateTimeFormat('es-AR',{month:'long',year:'numeric'}).format(d).replace(/^./,c=>c.toUpperCase());
- $('monthPicker').value=currentMonth;loadBills();loadExpensas();
+ $('monthPicker').value=currentMonth;loadBills();loadExpensas();loadDirect();
 }
 function resetForm(){
  editingId=null;invoiceFile=null;receiptFile=null;existingInvoicePath=null;existingReceiptPath=null;ocrResult=null;
@@ -183,14 +184,42 @@ async function loadExpensas(){
  if(!data?.length){$('expensasList').innerHTML='<div class="empty">Todavía no hay expensas cargadas este mes.</div>';return;}
  $('expensasList').innerHTML=data.map(b=>'<article class="bill expensaBill"><div><b>'+esc(b.holder_name||'6°C')+'</b><small>U.F. '+esc(b.invoice_number||'17 (C.14)')+' · '+esc(b.account_number||'6°C')+'</small></div><div><small>Sin extraordinaria</small><b>'+money(b.ordinary_amount||b.amount)+'</b></div><div><small>Con extraordinaria</small><b>'+money(b.amount)+'</b></div><div><small>Vence</small><b>'+dateAR(b.due_date)+'</b></div><div><span class="status '+(b.status==='Pagada'?'paid':'')+'">'+esc(b.status)+'</span></div><div class="billActions"><button data-exp-action="toggle" data-id="'+b.id+'" data-status="'+b.status+'">'+(b.status==='Pagada'?'Pendiente':'Pagar')+'</button>'+(b.invoice_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.invoice_file_path)+'">Liquidación</button>':'')+(b.receipt_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
 }
+async function loadDirect(){
+ const {data,error}=await db.from('household_bills').select('id,amount,status,receipt_file_path,bill_month').eq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('created_at',{ascending:false});
+ if(error){$('directList').innerHTML='<div class="empty">No se pudo cargar el seguro del auto.</div>';return;}
+ if(!data?.length){$('directList').innerHTML='<div class="empty">Todavía no hay un pago registrado este mes.</div>';return;}
+ $('directList').innerHTML=data.map(b=>'<article class="bill directBill"><div><b>Seguro del auto</b><small>Pago directo</small></div><div><small>Importe</small><b>'+money(b.amount)+'</b></div><div><small>Estado</small><span class="status paid">Pagada</span></div><div class="billActions">'+(b.receipt_file_path?'<button data-direct-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
+}
+async function saveDirect(){
+ const amount=parseMoney($('directAmount').value);
+ if(!amount){alert('Ingresá el importe.');return;}
+ $('saveDirectBtn').disabled=true;
+ try{
+  const receiptPath=directReceiptFile?await uploadFile(directReceiptFile,'receipts'):null;
+  const payload={bill_month:currentMonth+'-01',service:'Seguro de auto',company:'Pago directo',amount,status:'Pagada',receipt_file_path:receiptPath,updated_at:new Date().toISOString()};
+  const {error}=await db.from('household_bills').insert(payload);
+  if(error)throw error;
+  closeDirect();await loadBills();await loadDirect();
+ }catch(e){console.error(e);alert('No se pudo guardar el pago: '+e.message);}
+ finally{$('saveDirectBtn').disabled=false;}
+}
+function resetDirectForm(){
+ directReceiptFile=null;
+ $('directAmount').value='';$('directReceiptInput').value='';$('directFileInfo').textContent='';
+}
+function openDirect(){resetDirectForm();$('directModal').classList.remove('hidden');}
+function closeDirect(){$('directModal').classList.add('hidden');}
+
 async function loadBills(){
- const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
+ const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').neq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
  const data=(rawData||[]).filter(b=>String(b.service||'').trim().toLowerCase()!=='expensas');
  if(error){$('billList').innerHTML='<div class="empty">No se pudieron cargar las facturas.</div>';return;}
  let total=0,paid=0,pending=0,upcoming=0;const today=new Date().toISOString().slice(0,10);
  for(const b of data||[]){const n=Number(b.amount)||0;total+=n;if(b.status==='Pagada')paid+=n;else{pending+=n;if(b.due_date&&b.due_date>=today)upcoming++;}}
  const {data:expensasTotal}=await db.from('household_bills').select('amount,status,due_date').eq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
  for(const e of expensasTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else{pending+=n;if(e.due_date&&e.due_date>=today)upcoming++;}}
+ const {data:directTotal}=await db.from('household_bills').select('amount,status').eq('service','Seguro de auto').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01');
+ for(const e of directTotal||[]){const n=Number(e.amount)||0;total+=n;if(e.status==='Pagada')paid+=n;else pending+=n;}
  $('totalAmount').textContent=money(total);$('paidAmount').textContent=money(paid);$('pendingAmount').textContent=money(pending);$('upcomingCount').textContent=String(upcoming);
  if(!data?.length){$('billList').innerHTML='<div class="empty">Todavía no hay facturas cargadas este mes.</div>';return;}
  $('billList').innerHTML=data.map(b=>'<article class="bill"><div><b>'+esc(b.company)+'</b><small>'+esc(b.service||'Otro')+(b.account_number?' · '+esc(b.account_number):'')+'</small></div><div><small>Importe</small><b>'+money(b.amount)+'</b></div><div><small>Vence</small><b>'+dateAR(b.due_date)+'</b></div><div><span class="status '+(b.status==='Pagada'?'paid':'')+'">'+esc(b.status)+'</span></div><div class="billActions"><button data-action="edit" data-id="'+b.id+'">Editar</button><button data-action="toggle" data-id="'+b.id+'" data-status="'+b.status+'">'+(b.status==='Pagada'?'Pendiente':'Pagar')+'</button>'+(b.invoice_file_path?'<button data-action="file" data-path="'+encodeURIComponent(b.invoice_file_path)+'">Factura</button>':'')+(b.receipt_file_path?'<button data-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
@@ -266,6 +295,12 @@ db.auth.onAuthStateChange((_event,session)=>{if(session)showApp(session);else hi
 requireAuth();
 
 $('expensasList').addEventListener('click',e=>{const b=e.target.closest('button[data-exp-action]');if(!b)return;if(b.dataset.expAction==='toggle')toggleExpensa(b.dataset.id,b.dataset.status);if(b.dataset.expAction==='file')viewFile(decodeURIComponent(b.dataset.path));});
+$('directList').addEventListener('click',e=>{const b=e.target.closest('button[data-direct-action]');if(!b)return;if(b.dataset.directAction==='file')viewFile(decodeURIComponent(b.dataset.path));});
+$('directBtn').onclick=openDirect;$('closeDirect').onclick=closeDirect;$('cancelDirect').onclick=closeDirect;
+$('directReceiptInput').onchange=e=>{directReceiptFile=e.target.files[0]||null;if(directReceiptFile)$('directFileInfo').textContent='Comprobante seleccionado: '+directReceiptFile.name;};
+$('directAmount').addEventListener('focus',e=>{if(e.target.value)e.target.value=parseMoney(e.target.value).toString();});
+$('directAmount').addEventListener('blur',e=>{const n=parseMoney(e.target.value);e.target.value=n?money(n):'';});
+$('saveDirectBtn').onclick=saveDirect;
 $('expensasBtn').onclick=openExpensas;$('closeExpensas').onclick=closeExpensas;$('cancelExpensas').onclick=closeExpensas;$('expensasFileInput').onchange=async e=>{expensasFile=e.target.files[0]||null;if(expensasFile){$('expensasFileInfo').textContent='Liquidación seleccionada: '+expensasFile.name;await analyzeExpensas(expensasFile);}};
 $('expensasReceiptInput').onchange=e=>{expensasReceiptFile=e.target.files[0]||null;if(expensasReceiptFile)$('expensasFileInfo').textContent+=' · Comprobante: '+expensasReceiptFile.name;};
 $('saveExpensasBtn').onclick=saveExpensas;
