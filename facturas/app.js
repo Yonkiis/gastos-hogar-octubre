@@ -309,10 +309,59 @@ async function togglePaid(id,status){
  if(newStatus==='Pagada'&&!$('paymentDate')){} 
  const {error}=await db.from('household_bills').update(update).eq('id',id);if(error)alert(error.message);else loadBills();
 }
-async function viewFile(path){
+async function getSignedFileUrl(path){
+ if(!path)return null;
  const {data,error}=await db.storage.from('household-bills').createSignedUrl(path,3600);
- if(error||!data?.signedUrl){alert('No se pudo abrir el documento.');return;}
- $('viewer').src=data.signedUrl;$('viewModal').classList.remove('hidden');
+ if(error||!data?.signedUrl)throw error||new Error('No se pudo generar el acceso al documento.');
+ return data.signedUrl;
+}
+async function viewFile(path){
+ try{
+  const url=await getSignedFileUrl(path);
+  $('viewer').src=url;$('viewModal').classList.remove('hidden');
+ }catch(e){console.error(e);alert('No se pudo abrir el documento.');}
+}
+async function shareFile(path,title){
+ try{
+  const url=await getSignedFileUrl(path);
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('No se pudo descargar el archivo.');
+  const blob=await response.blob();
+  const ext=(path.split('.').pop()||'bin').toLowerCase();
+  const type=blob.type|| (ext==='pdf'?'application/pdf':'image/*');
+  const file=new File([blob],(title||'documento')+'.'+ext,{type});
+  if(navigator.canShare?.({files:[file]})&&navigator.share){
+   await navigator.share({title:title||'Documento',files:[file]});
+   return;
+  }
+  if(navigator.share){
+   await navigator.share({title:title||'Documento',text:title||'Documento'});
+   return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  alert('Este dispositivo no permite compartir directamente. El archivo fue descargado para que puedas adjuntarlo en WhatsApp, Mail u otra aplicación.');
+ }catch(e){
+  if(e?.name==='AbortError')return;
+  console.error(e);alert('No se pudo compartir el documento.');
+ }
+}
+async function shareDocuments(paths,title){
+ const valid=paths.filter(Boolean);
+ if(valid.length===1){await shareFile(valid[0],title);return;}
+ if(!valid.length){alert('No hay documentos para compartir.');return;}
+ try{
+  const files=[];
+  for(const path of valid){
+   const url=await getSignedFileUrl(path);const response=await fetch(url);
+   if(!response.ok)throw new Error('No se pudo descargar un documento.');
+   const blob=await response.blob();const ext=(path.split('.').pop()||'bin').toLowerCase();
+   files.push(new File([blob],(path.includes('receipts/')?'comprobante':'factura')+'.'+ext,{type:blob.type|| (ext==='pdf'?'application/pdf':'image/*')}));
+  }
+  if(navigator.canShare?.({files})&&navigator.share){await navigator.share({title:title||'Facturas y comprobantes',files});return;}
+  for(const file of files){const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+  alert('Este dispositivo no permite compartir varios archivos directamente. Los archivos fueron descargados para que puedas adjuntarlos juntos.');
+ }catch(e){if(e?.name==='AbortError')return;console.error(e);alert('No se pudieron compartir los documentos.');}
 }
 
 $('authForm').addEventListener('submit',handleAuthSubmit);
