@@ -212,7 +212,7 @@ async function deleteBill(id){
 }
 
 async function loadDirect(){
- const {data,error}=await db.from('household_bills').select('id,amount,status,receipt_file_path,bill_month,service').in('service',['Seguro de auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('created_at',{ascending:false});
+ const {data,error}=await db.from('household_bills').select('id,amount,status,receipt_file_path,bill_month,service').in('service',['Seguro de auto','Seguro del auto','Nafta']).gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('created_at',{ascending:false});
  if(error){$('directList').innerHTML='<div class="empty">No se pudo cargar el seguro del auto.</div>';return;}
  if(!data?.length){$('directList').innerHTML='<div class="empty">Todavía no hay un pago registrado este mes.</div>';return;}
  $('directList').innerHTML=data.map(b=>'<article class="bill directBill"><div><b>'+esc(b.service==='Nafta'?'⛽ Nafta':'🚗 Seguro del auto')+'</b><small>Pago directo</small></div><div><small>Importe</small><b>'+money(b.amount)+'</b></div><div><small>Estado</small><span class="status paid">Pagada</span></div><div class="billActions">'+(b.receipt_file_path?'<button data-direct-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'<button class="dangerBtn" data-direct-action="delete" data-id="'+b.id+'">Eliminar</button></div></article>').join('');
@@ -223,7 +223,7 @@ async function saveDirect(){
  $('saveDirectBtn').disabled=true;
  try{
   const receiptPath=directReceiptFile?await uploadFile(directReceiptFile,'receipts'):null;
-  const service=$('directType').value;const payload={bill_month:currentMonth+'-01',service,company:'Pago directo',amount,status:'Pagada',receipt_file_path:receiptPath,updated_at:new Date().toISOString()};
+  const selected=$('directType').value;const service=selected==='Seguro del auto'?'Seguro de auto':'Nafta';const payload={bill_month:currentMonth+'-01',service,company:'Pago directo',amount,status:'Pagada',receipt_file_path:receiptPath,updated_at:new Date().toISOString()};
   const {error}=await db.from('household_bills').insert(payload);
   if(error)throw error;
   closeDirect();await loadBills();await loadDirect();
@@ -239,7 +239,7 @@ function closeDirect(){$('directModal').classList.add('hidden');}
 
 async function loadBills(){
  const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').neq('service','Seguro de auto').neq('service','Nafta').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
- const data=(rawData||[]).filter(b=>String(b.service||'').trim().toLowerCase()!=='expensas');
+ const data=(rawData||[]).filter(b=>{const s=String(b.service||'').trim().toLowerCase();return s!=='expensas'&&s!=='seguro de auto'&&s!=='seguro del auto'&&s!=='nafta';});
  if(error){$('billList').innerHTML='<div class="empty">No se pudieron cargar las facturas.</div>';return;}
  let total=0,paid=0,pending=0,upcoming=0;const today=new Date().toISOString().slice(0,10);
  for(const b of data||[]){const n=Number(b.amount)||0;total+=n;if(b.status==='Pagada')paid+=n;else{pending+=n;if(b.due_date&&b.due_date>=today)upcoming++;}}
