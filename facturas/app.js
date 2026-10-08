@@ -158,7 +158,13 @@ async function analyzeInvoice(file){
  }finally{$('saveBtn').disabled=false;}
 }
 async function saveBill(){
+ const service=$('service').value;
  const company=$('company').value.trim(),amount=parseMoney($('amount').value);
+ if(service==='Seguro de auto'){
+  closeModal();openDirect();$('directType').value='Seguro del auto';$('directAmount').value=amount?money(amount):'';
+  alert('El Seguro del auto se registra únicamente desde la sección 🚗 Seguro del auto, no como factura.');
+  return;
+ }
  if(!company||!amount){alert('Completá empresa e importe.');return;}
  $('saveBtn').disabled=true;
  try{
