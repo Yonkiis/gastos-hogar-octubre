@@ -1,6 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
-import { readInvoiceFile } from './reader-v2.js?v=50';
+import { readInvoiceFile } from './reader-v2.js?v=51';
 
 window.pdfjsLib=pdfjsLib;
 
@@ -47,7 +47,8 @@ function renderOCR(result){
  const f=result.fields||{};
  const rows=[
   ['Empresa',f.company],['Servicio',f.service],['Titular',f.holder],['Cliente/cuenta',f.account],
-  ['Importe',f.amount],['Vencimiento',f.due],['Emisión',f.issue]
+  ['N° factura',f.invoice],['Importe',f.amount],['Vencimiento',f.due],['Emisión',f.issue],
+  ['Período',f.periodStart&&f.periodEnd?{value:dateAR(f.periodStart.value)+' al '+dateAR(f.periodEnd.value),confidence:Math.min(f.periodStart.confidence,f.periodEnd.confidence),evidence:'Período de liquidación'}:null]
  ];
  const warnings=result.validation?.warnings||[];
  $('ocrPanel').innerHTML='<div class="analysisTitle"><div><b>Datos detectados</b><small>Revisá los campos antes de guardar.</small></div><span class="analysisBadge">'+(result.source==='pdf-text'?'PDF con texto':'OCR')+'</span></div>'+
@@ -59,6 +60,7 @@ function applyOCR(result){
  const f=result.fields||{};
  setVal('company',fieldValue('company'));setVal('service',fieldValue('service')||'Otro');setVal('holderName',fieldValue('holder'));setVal('accountNumber',fieldValue('account'));
  setVal('amount',f.amount?.value?money(f.amount.value):'');setVal('dueDate',fmtDateInput(fieldValue('due')));setVal('issueDate',fmtDateInput(fieldValue('issue')));
+ setVal('periodStart',fmtDateInput(fieldValue('periodStart')));setVal('periodEnd',fmtDateInput(fieldValue('periodEnd')));
  if(result.fields.invoice?.value)setVal('invoiceNumber',result.fields.invoice.value);
 }
 async function analyzeInvoice(file){
