@@ -8,9 +8,71 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@
 const SUPABASE_URL='https://vbhvitwbcbymfafnfmdw.supabase.co';
 const SUPABASE_KEY='sb_publishable_TOeRbvLnMA50JjqpO4tUNQ_s7rAvLmM';
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+async function getSession(){
+ const {data}=await db.auth.getSession();
+ return data.session;
+}
+async function requireAuth(){
+ const session=await getSession();
+ if(session){showApp(session);return;}
+ hideApp();
+}
+function showApp(session){
+ $('authGate').classList.add('hidden');
+ document.body.classList.remove('authLocked');
+ $('userEmail').textContent=session?.user?.email||'';
+ setMonth();
+}
+function hideApp(){
+ $('authGate').classList.remove('hidden');
+ document.body.classList.add('authLocked');
+}
+function setAuthMessage(message,isError=false){
+ $('authMessage').textContent=message||'';
+ $('authMessage').className='authMessage '+(isError?'error':'');
+}
+async function handleAuthSubmit(e){
+ e.preventDefault();
+ const email=$('authEmail').value.trim(),password=$('authPassword').value;
+ if(!email||!password)return;
+ $('authSubmit').disabled=true;setAuthMessage('');
+ try{
+  if(authMode==='signup'){
+   const {data,error}=await db.auth.signUp({email,password});
+   if(error)throw error;
+   if(data.session){
+    showApp(data.session);
+   }else{
+    setAuthMessage('Cuenta creada. Revisá tu email para confirmar la cuenta y después ingresá.');
+   }
+  }else{
+   const {data,error}=await db.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   showApp(data.session);
+  }
+ }catch(e){
+  console.error(e);setAuthMessage(e.message||'No se pudo completar el acceso.',true);
+ }finally{$('authSubmit').disabled=false;}
+}
+function toggleAuthMode(){
+ authMode=authMode==='login'?'signup':'login';
+ $('authSubmit').textContent=authMode==='login'?'Ingresar':'Crear cuenta';
+ $('authModeBtn').textContent=authMode==='login'?'Crear una cuenta':'Ya tengo una cuenta';
+ $('authSubtitle').textContent=authMode==='login'?'Ingresá para acceder a tus facturas y comprobantes.':'Creá tu acceso para proteger tus facturas y comprobantes.';
+ $('authPassword').autocomplete=authMode==='login'?'current-password':'new-password';
+ setAuthMessage('');
+}
+async function logout(){
+ await db.auth.signOut();
+ hideApp();
+ $('authForm').reset();
+ setAuthMessage('Sesión cerrada.');
+}
 const $=id=>document.getElementById(id);
 let currentMonth=new Date().toISOString().slice(0,7);
 let editingId=null,invoiceFile=null,receiptFile=null,existingInvoicePath=null,existingReceiptPath=null,ocrResult=null;
+let authMode='login';
 
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
 const dateAR=s=>s?new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(s+'T12:00:00')):'—';
@@ -138,7 +200,17 @@ async function togglePaid(id,status){
  if(newStatus==='Pagada'&&!$('paymentDate')){} 
  const {error}=await db.from('household_bills').update(update).eq('id',id);if(error)alert(error.message);else loadBills();
 }
-function viewFile(path){const {data}=db.storage.from('household-bills').getPublicUrl(path);$('viewer').src=data.publicUrl;$('viewModal').classList.remove('hidden');}
+async function viewFile(path){
+ const {data,error}=await db.storage.from('household-bills').createSignedUrl(path,3600);
+ if(error||!data?.signedUrl){alert('No se pudo abrir el documento.');return;}
+ $('viewer').src=data.signedUrl;$('viewModal').classList.remove('hidden');
+}
+
+$('authForm').addEventListener('submit',handleAuthSubmit);
+$('authModeBtn').onclick=toggleAuthMode;
+$('logoutBtn').onclick=logout;
+db.auth.onAuthStateChange((_event,session)=>{if(session)showApp(session);else hideApp();});
+requireAuth();
 
 $('billList').addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;if(b.dataset.action==='edit')editBill(b.dataset.id);if(b.dataset.action==='toggle')togglePaid(b.dataset.id,b.dataset.status);if(b.dataset.action==='file')viewFile(decodeURIComponent(b.dataset.path));});
 $('uploadBtn').onclick=openModal;$('uploadTop').onclick=openModal;$('closeModal').onclick=closeModal;$('cancelBtn').onclick=closeModal;
