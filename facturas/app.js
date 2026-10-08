@@ -184,7 +184,8 @@ async function loadExpensas(){
  $('expensasList').innerHTML=data.map(b=>'<article class="bill expensaBill"><div><b>'+esc(b.holder_name||'6°C')+'</b><small>U.F. '+esc(b.invoice_number||'17 (C.14)')+' · '+esc(b.account_number||'6°C')+'</small></div><div><small>Sin extraordinaria</small><b>'+money(b.ordinary_amount||b.amount)+'</b></div><div><small>Con extraordinaria</small><b>'+money(b.amount)+'</b></div><div><small>Vence</small><b>'+dateAR(b.due_date)+'</b></div><div><span class="status '+(b.status==='Pagada'?'paid':'')+'">'+esc(b.status)+'</span></div><div class="billActions"><button data-exp-action="toggle" data-id="'+b.id+'" data-status="'+b.status+'">'+(b.status==='Pagada'?'Pendiente':'Pagar')+'</button>'+(b.invoice_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.invoice_file_path)+'">Liquidación</button>':'')+(b.receipt_file_path?'<button data-exp-action="file" data-path="'+encodeURIComponent(b.receipt_file_path)+'">Comprobante</button>':'')+'</div></article>').join('');
 }
 async function loadBills(){
- const {data,error}=await db.from('household_bills').select('*').neq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
+ const {data:rawData,error}=await db.from('household_bills').select('*').neq('service','Expensas').gte('bill_month',currentMonth+'-01').lt('bill_month',nextMonth(currentMonth)+'-01').order('due_date',{ascending:true,nullsFirst:false});
+ const data=(rawData||[]).filter(b=>String(b.service||'').trim().toLowerCase()!=='expensas');
  if(error){$('billList').innerHTML='<div class="empty">No se pudieron cargar las facturas.</div>';return;}
  let total=0,paid=0,pending=0,upcoming=0;const today=new Date().toISOString().slice(0,10);
  for(const b of data||[]){const n=Number(b.amount)||0;total+=n;if(b.status==='Pagada')paid+=n;else{pending+=n;if(b.due_date&&b.due_date>=today)upcoming++;}}
