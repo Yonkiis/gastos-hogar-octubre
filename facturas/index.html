@@ -30,7 +30,7 @@
 </section>
 <section class="panel"><div class="panelHead"><h2>Facturas</h2><button id="uploadBtn">+ Cargar factura</button></div><div id="billList" class="list"></div></section>
 <section class="panel expensasPanel"><div class="panelHead"><div><h2>🏢 Expensas</h2><p class="sectionHint">Liquidación independiente · se toma únicamente la unidad 6°C</p></div><button id="expensasBtn">+ Cargar expensa</button></div><div id="expensasList" class="list"></div></section>
-<section class="panel directPanel"><div class="panelHead"><div><h2>🚗 Gastos directos</h2><p class="sectionHint">Pagos sin factura · solo importe y comprobante</p></div><button id="directBtn">+ Registrar pago</button></div><div id="directList" class="list"></div></section>
+<section class="panel directPanel"><div class="panelHead"><div><h2>🚗 Gastos directos</h2><p class="sectionHint">Seguro del auto y nafta</p><p class="sectionHint">Pagos sin factura · solo importe y comprobante</p></div><button id="directBtn">+ Registrar pago</button></div><div id="directList" class="list"></div></section>
 </main>
 <div id="modal" class="modal hidden"><div class="modalBox">
 <div class="modalHead"><h2 id="modalTitle">Nueva factura</h2><button id="closeModal">×</button></div>
@@ -68,8 +68,9 @@
 <div id="expensasFileInfo" class="fileInfo"></div><div class="actions"><button class="secondary" id="cancelExpensas">Cancelar</button><button id="saveExpensasBtn">Guardar expensa</button></div>
 </div></div>
 <div id="directModal" class="modal hidden"><div class="modalBox smallDirect">
-<div class="modalHead"><h2>Registrar seguro del auto</h2><button id="closeDirect">×</button></div>
-<div class="directHint">El importe lo cargás manualmente y el pago queda registrado como pagado.</div>
+<div class="modalHead"><h2 id="directModalTitle">Registrar pago</h2><button id="closeDirect">×</button></div>
+<div class="directHint">Seleccioná el tipo de gasto, cargá el importe manualmente y, si querés, vinculá el comprobante.</div>
+<label>Tipo de gasto<select id="directType"><option>Seguro del auto</option><option>Nafta</option></select></label>
 <div class="formgrid">
 <label>Importe<input id="directAmount" inputmode="decimal" placeholder="$0,00"></label>
 <label>Comprobante de pago<input id="directReceiptInput" type="file" accept=".pdf,image/*"></label>
@@ -78,5 +79,5 @@
 <div class="actions"><button class="secondary" id="cancelDirect">Cancelar</button><button id="saveDirectBtn">Guardar pago</button></div>
 </div></div>
 <div id="viewModal" class="modal hidden"><div class="modalBox small"><div class="modalHead"><h2>Documento</h2><button id="closeView">×</button></div><iframe id="viewer" title="Documento"></iframe></div></div>
-<script type="module" src="app.js?v=53"></script>
+<script type="module" src="app.js?v=54"></script>
 </body></html>
