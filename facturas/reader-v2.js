@@ -368,7 +368,7 @@ function parseExpensas(text,fileName=''){
  let y=new Date().getFullYear();
  if(monthMatch){const mm=names[monthMatch[0].toUpperCase()];out.billMonth=candidate(new Date(y,mm,1).toISOString().slice(0,10),.95,'Mes indicado en el nombre de la liquidación','Expensas');}
  const dueText=t.match(/ABONARs+ANTESs+DELs+D[IÍ]As+(d{1,2})s+DEs+CADAs+MES/i);
- if(dueText){let dueMonth=out.billMonth?.value?new Date(out.billMonth.value+'T12:00:00'):new Date();dueMonth.setMonth(dueMonth.getMonth()+1);const d=new Date(dueMonth.getFullYear(),dueMonth.getMonth(),Number(dueText[1]));out.due=candidate(d.toISOString().slice(0,10),.94,'Forma de pago de expensas','Expensas');}
+ if(dueText){let dueMonth=out.billMonth?.value?new Date(out.billMonth.value+'T12:00:00'):new Date();dueMonth.setMonth(dueMonth.getMonth()+1);const d=new Date(dueMonth.getFullYear(),dueMonth.getMonth(),Number(dueText[1]));out.due=candidate(d.toISOString().slice(0,10),.94,'Forma de pago de expensas','Expensas');out.billMonth=candidate(new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10),.94,'Mes de vencimiento de la expensa','Expensas');}
  return out;
 }
 export async function readExpensasFile(file,onProgress=()=>{}){
