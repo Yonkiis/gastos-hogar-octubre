@@ -16,3 +16,5 @@ body.authLocked>header,body.authLocked>main{visibility:hidden}
 .expensasPanel{margin-top:20px}.sectionHint{margin:4px 0 0;color:#64748b;font-size:12px}.expensaBill{border-left:4px solid #7c3aed}
 
 .directPanel{margin-top:20px}.directBill{border-left:4px solid #0f766e}.directHint{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:16px;color:#64748b;font-size:13px}.smallDirect{width:min(600px,100%)}
+
+.dangerBtn{background:#fee2e2!important;color:#991b1b!important}.dangerBtn:hover{background:#fecaca!important}
