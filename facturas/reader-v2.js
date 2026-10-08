@@ -133,6 +133,8 @@ function parseEdesur(text){
   if(due) out.due=candidate(dateISO(due[1]),.99,'Primer vencimiento','Edesur');
 
   const invoice=first(
+    t.match(/(?:FACTURA|N[°º]\s*DE\s*FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([A-Z]-\d{4}-\d{6,10})/i),
+    t.match(/\b([A-Z]-\d{4}-\d{6,10})\b/i),
     t.match(/(?:FACTURA|N[°º]\s*DE\s*FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([0-9]{1,5}[- ]?[0-9]{6,10})/i),
     t.match(/([0-9]{4,5}-[0-9]{6,10})/)
   );
@@ -160,6 +162,18 @@ function parseMetroGas(text){
 
   const issue=t.match(/FECHA\s+DE\s+EMISI[ÓO]N\s*:\s*([^\n]+)/i);
   if(issue)out.issue=candidate(dateISO(issue[1]),.99,'FECHA DE EMISIÓN','MetroGAS');
+
+  const invoice=first(
+    t.match(/\b([A-Z]-\d{4}-\d{6,10})\b/i),
+    t.match(/(?:FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([0-9]{4,5}-[0-9]{6,10})/i)
+  );
+  if(invoice)out.invoice=candidate(invoice[1],.99,'Número de factura/comprobante','MetroGAS');
+
+  const period=t.match(/PERIODO\s+DE\s+LIQUIDACI[ÓO]N\s*:\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})\s+A\s+(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if(period){
+    out.periodStart=candidate(dateISO(period[1]),.99,'Período de liquidación — inicio','MetroGAS');
+    out.periodEnd=candidate(dateISO(period[2]),.99,'Período de liquidación — fin','MetroGAS');
+  }
 
   const ci=first(
     t.match(/N[ÚU]MERO\s+DE\s+CLIENTE\s*[:#-]?\s*(\d{6,14})/i),
@@ -267,7 +281,13 @@ function parseGeneric(text){
     t.match(/(?:FACTURA|N[°º]\s*DE\s*FACTURA|COMPROBANTE)\s*(?:N[°º]\s*)?[:#-]?\s*([0-9]{1,5}[- ]?[0-9]{6,10})/i),
     t.match(/([0-9]{4,5}-[0-9]{6,10})/)
   );
-  if(invoice) out.invoice=candidate(invoice[1],.75,'Número de factura/comprobante','generic');
+  if(invoice) out.invoice=candidate(invoice[1],.85,'Número de factura/comprobante','generic');
+
+  const period=t.match(/PERIODO\s+DE\s+LIQUIDACI[ÓO]N\s*:\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})\s+A\s+(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if(period){
+    out.periodStart=candidate(dateISO(period[1]),.99,'Período de liquidación — inicio','generic');
+    out.periodEnd=candidate(dateISO(period[2]),.99,'Período de liquidación — fin','generic');
+  }
 
   const total=first(
     t.match(/TOTAL\s+A\s+PAGAR[^\d$]{0,40}\$?\s*([0-9.,]+)/i),
